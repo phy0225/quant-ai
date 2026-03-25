@@ -1,0 +1,1076 @@
+测试报告 — 第 5 次尝试
+时间: 2026-03-24T17:37:59.280089
+============================================================
+后端测试: 失败 (9 个)
+前端类型检查: 通过
+
+失败的后端测试:
+  [unknown] TestDecisions::test_trigger_empty_symbols_rejected: assert 200 in (400, 422)
+  [unknown] TestDecisions::test_trigger_blocked_by_emergency_stop: sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+  [unknown] TestDecisions::test_trigger_blocked_by_circuit_breaker_l2: sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+  [unknown] TestApprovals::test_approve_blocked_by_emergency_stop: sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+  [unknown] TestRisk::test_circuit_breaker_reset: sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+  [unknown] TestScenario03CircuitBreakerLevels::test_circuit_breaker_behavior[0-True-True]: sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+  [unknown] TestScenario03CircuitBreakerLevels::test_circuit_breaker_behavior[1-True-True]: sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+  [unknown] TestScenario03CircuitBreakerLevels::test_circuit_breaker_behavior[2-False-False]: sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+  [unknown] TestScenario03CircuitBreakerLevels::test_circuit_breaker_behavior[3-False-False]: sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+
+完整输出:
+============================================================
+============================= test session starts =============================
+collecting ... collected 189 items
+
+tests/test_api.py::TestHealth::test_health_ok PASSED                     [  0%]
+tests/test_api.py::TestHealth::test_404_unknown_path PASSED              [  1%]
+tests/test_api.py::TestDecisions::test_trigger_returns_running_status PASSED [  1%]
+tests/test_api.py::TestDecisions::test_trigger_multiple_symbols PASSED   [  2%]
+tests/test_api.py::TestDecisions::test_trigger_with_portfolio PASSED     [  2%]
+tests/test_api.py::TestDecisions::test_trigger_empty_symbols_rejected [cn_market] cache hit: 000001
+FAILED [  3%]
+tests/test_api.py::TestDecisions::test_trigger_blocked_by_emergency_stop FAILED [  3%]
+tests/test_api.py::TestDecisions::test_trigger_blocked_by_circuit_breaker_l2 FAILED [  4%]
+tests/test_api.py::TestDecisions::test_get_decision_by_id PASSED         [  4%]
+tests/test_api.py::TestDecisions::test_get_decision_not_found PASSED     [  5%]
+tests/test_api.py::TestDecisions::test_list_decisions_pagination PASSED  [  5%]
+tests/test_api.py::TestApprovals::test_approve_creates_portfolio_holding PASSED [  6%]
+tests/test_api.py::TestApprovals::test_approve_updates_existing_holding PASSED [  6%]
+tests/test_api.py::TestApprovals::test_modify_weight_then_portfolio_reflects_new_weight PASSED [  7%]
+tests/test_api.py::TestApprovals::test_modify_weight_recommendation_also_updated PASSED [  7%]
+tests/test_api.py::TestApprovals::test_modify_weight_exceeds_limit_rejected PASSED [  8%]
+tests/test_api.py::TestApprovals::test_modify_weight_negative_rejected PASSED [  8%]
+tests/test_api.py::TestApprovals::test_modify_zero_weight_clears_holding PASSED [  9%]
+tests/test_api.py::TestApprovals::test_reject_does_not_change_portfolio PASSED [ 10%]
+tests/test_api.py::TestApprovals::test_cannot_approve_twice PASSED       [ 10%]
+tests/test_api.py::TestApprovals::test_cannot_modify_approved PASSED     [ 11%]
+tests/test_api.py::TestApprovals::test_approve_blocked_by_emergency_stop FAILED [ 11%]
+tests/test_api.py::TestApprovals::test_approve_creates_portfolio_snapshot PASSED [ 12%]
+tests/test_api.py::TestPortfolio::test_create_and_verify_all_fields PASSED [ 12%]
+tests/test_api.py::TestPortfolio::test_create_upsert_same_symbol PASSED  [ 13%]
+tests/test_api.py::TestPortfolio::test_update_weight_persists PASSED     [ 13%]
+tests/test_api.py::TestPortfolio::test_delete_then_not_in_list PASSED    [ 14%]
+tests/test_api.py::TestPortfolio::test_summary_total_weight PASSED       [ 14%]
+tests/test_api.py::TestPortfolio::test_update_not_found PASSED           [ 15%]
+tests/test_api.py::TestPortfolio::test_delete_not_found PASSED           [ 15%]
+tests/test_api.py::TestRisk::test_get_status_default PASSED              [ 16%]
+tests/test_api.py::TestRisk::test_update_params_persists PASSED          [ 16%]
+tests/test_api.py::TestRisk::test_update_params_partial PASSED           [ 17%]
+tests/test_api.py::TestRisk::test_emergency_stop_blocks_trigger PASSED   [ 17%]
+tests/test_api.py::TestRisk::test_emergency_stop_deactivate_correct_password PASSED [ 18%]
+tests/test_api.py::TestRisk::test_emergency_stop_wrong_password PASSED   [ 19%]
+tests/test_api.py::TestRisk::test_circuit_breaker_reset FAILED           [ 19%]
+tests/test_api.py::TestRules::test_create_and_list PASSED                [ 20%]
+tests/test_api.py::TestRules::test_toggle_changes_active_status PASSED   [ 20%]
+tests/test_api.py::TestRules::test_delete_removes_rule PASSED            [ 21%]
+tests/test_api.py::TestRules::test_active_only_filter PASSED             [ 21%]
+tests/test_api.py::TestRules::test_update_rule_persists PASSED           [ 22%]
+tests/test_api.py::TestBacktest::test_run_and_list PASSED                [ 22%]
+tests/test_api.py::TestBacktest::test_requires_2_symbols PASSED          [ 23%]
+tests/test_api.py::TestBacktest::test_completed_report_has_metrics PASSED [ 23%]
+tests/test_api.py::TestDecisionStats::test_stats_empty_returns_zero PASSED [ 24%]
+tests/test_api.py::TestDecisionStats::test_stats_counts_completed_only PASSED [ 24%]
+tests/test_api.py::TestDecisionStats::test_stats_symbol_filter PASSED    [ 25%]
+tests/test_api.py::TestDecisionStats::test_stats_direction_distribution PASSED [ 25%]
+tests/test_api.py::TestBatchReject::test_batch_reject_success PASSED     [ 26%]
+tests/test_api.py::TestBatchReject::test_batch_reject_partial_fail PASSED [ 26%]
+tests/test_api.py::TestBatchReject::test_batch_reject_only_allows_rejected_action PASSED [ 27%]
+tests/test_api.py::TestBatchReject::test_batch_reject_empty_ids PASSED   [ 28%]
+tests/test_api.py::TestBatchReject::test_batch_reject_too_many_ids PASSED [ 28%]
+tests/test_api.py::TestBatchReject::test_batch_reject_blocked_by_emergency_stop PASSED [ 29%]
+tests/test_api.py::TestGraph::test_approve_creates_graph_node PASSED     [ 29%]
+tests/test_api.py::TestGraph::test_reject_also_creates_node_with_approved_false PASSED [ 30%]
+tests/test_api.py::TestGraph::test_approved_node_has_approved_true PASSED [ 30%]
+tests/test_api.py::TestGraph::test_stats_after_approve PASSED            [ 31%]
+tests/test_api.py::TestGraph::test_search_similar PASSED                 [ 31%]
+tests/test_api.py::TestGraph::test_node_detail PASSED                    [ 32%]
+tests/test_api.py::TestGraph::test_node_not_found PASSED                 [ 32%]
+tests/test_flows.py::TestFlow01CompleteDecisionFlow::test_approve_updates_portfolio_weight PASSED [ 33%]
+tests/test_flows.py::TestFlow01CompleteDecisionFlow::test_approve_creates_snapshot PASSED [ 33%]
+tests/test_flows.py::TestFlow01CompleteDecisionFlow::test_snapshot_holdings_match_portfolio PASSED [ 34%]
+tests/test_flows.py::TestFlow01CompleteDecisionFlow::test_approve_creates_graph_node_with_correct_approved_flag PASSED [ 34%]
+tests/test_flows.py::TestFlow02ModifyWeightPersistence::test_modified_weight_not_original_recommendation PASSED [ 35%]
+tests/test_flows.py::TestFlow02ModifyWeightPersistence::test_approval_record_reflects_modified_weight PASSED [ 35%]
+tests/test_flows.py::TestFlow02ModifyWeightPersistence::test_zero_weight_deletes_holding PASSED [ 36%]
+tests/test_flows.py::TestFlow02ModifyWeightPersistence::test_modify_then_snapshot_reflects_new_weight PASSED [ 37%]
+tests/test_flows.py::TestFlow03RejectPreservesPortfolio::test_reject_does_not_update_weight PASSED [ 37%]
+tests/test_flows.py::TestFlow03RejectPreservesPortfolio::test_reject_does_not_create_snapshot PASSED [ 38%]
+tests/test_flows.py::TestFlow04RiskParamsEnforcement::test_lower_limit_blocks_previously_valid_weight PASSED [ 38%]
+tests/test_flows.py::TestFlow04RiskParamsEnforcement::test_raise_limit_allows_previously_blocked_weight PASSED [ 39%]
+tests/test_flows.py::TestFlow05EmergencyStopBlocksAll::test_emergency_stop_blocks_trigger_and_approve PASSED [ 39%]
+tests/test_flows.py::TestFlow05EmergencyStopBlocksAll::test_operations_resume_after_deactivation PASSED [ 40%]
+tests/test_flows.py::TestFlow06MultiSymbolIsolation::test_unapproved_symbol_weight_unchanged PASSED [ 40%]
+tests/test_flows.py::TestFlow07CumulativeApprovals::test_consecutive_approvals_accumulate PASSED [ 41%]
+tests/test_flows.py::TestFlow08ApprovalStateMachine::test_all_illegal_transitions_rejected PASSED [ 41%]
+tests/test_flows.py::TestFlow08ApprovalStateMachine::test_modify_then_action_rejected PASSED [ 42%]
+tests/test_flows.py::TestFlow08ApprovalStateMachine::test_modify_already_approved_rejected PASSED [ 42%]
+tests/test_scenarios.py::TestScenario01RepeatAnalysis::test_multiple_triggers_create_separate_decisions PASSED [ 43%]
+tests/test_scenarios.py::TestScenario01RepeatAnalysis::test_each_trigger_creates_separate_approval PASSED [ 43%]
+tests/test_scenarios.py::TestScenario02WeightBoundaries::test_weight_boundary_values[0.2-200] PASSED [ 44%]
+tests/test_scenarios.py::TestScenario02WeightBoundaries::test_weight_boundary_values[0.19-200] PASSED [ 44%]
+tests/test_scenarios.py::TestScenario02WeightBoundaries::test_weight_boundary_values[0.001-200] PASSED [ 45%]
+tests/test_scenarios.py::TestScenario02WeightBoundaries::test_weight_boundary_values[0.201-422] PASSED [ 46%]
+tests/test_scenarios.py::TestScenario02WeightBoundaries::test_weight_boundary_values[-0.01-422] PASSED [ 46%]
+tests/test_scenarios.py::TestScenario02WeightBoundaries::test_zero_weight_clears_holding PASSED [ 47%]
+tests/test_scenarios.py::TestScenario02WeightBoundaries::test_weight_at_exact_limit_is_allowed PASSED [ 47%]
+tests/test_scenarios.py::TestScenario03CircuitBreakerLevels::test_circuit_breaker_behavior[0-True-True] FAILED [ 48%]
+tests/test_scenarios.py::TestScenario03CircuitBreakerLevels::test_circuit_breaker_behavior[1-True-True] FAILED [ 48%]
+tests/test_scenarios.py::TestScenario03CircuitBreakerLevels::test_circuit_breaker_behavior[2-False-False] FAILED [ 49%]
+tests/test_scenarios.py::TestScenario03CircuitBreakerLevels::test_circuit_breaker_behavior[3-False-False] FAILED [ 49%]
+tests/test_scenarios.py::TestScenario04ConcurrentRequests::test_concurrent_triggers_all_succeed PASSED [ 50%]
+tests/test_scenarios.py::TestScenario04ConcurrentRequests::test_concurrent_approvals_final_state_consistent PASSED [ 50%]
+tests/test_scenarios.py::TestScenario05DataConsistency::test_portfolio_and_snapshot_always_consistent PASSED [ 51%]
+tests/test_scenarios.py::TestScenario05DataConsistency::test_graph_node_count_matches_processed_approvals PASSED [ 51%]
+tests/test_scenarios.py::TestScenario06PaginationAndFiltering::test_decisions_pagination PASSED [ 52%]
+tests/test_scenarios.py::TestScenario06PaginationAndFiltering::test_approvals_filter_by_status PASSED [ 52%]
+tests/test_scenarios.py::TestScenario07HoldingFieldPreservation::test_approve_preserves_cost_price_and_quantity PASSED [ 53%]
+tests/test_scenarios.py::TestScenario08RiskParamIsolation::test_risk_param_change_does_not_affect_existing_holdings PASSED [ 53%]
+tests/test_scenarios.py::TestScenario08RiskParamIsolation::test_updated_risk_params_persist_across_requests PASSED [ 54%]
+tests/test_units.py::TestTechnicalRules::test_rsi_80_extreme_overbought_sell PASSED [ 55%]
+tests/test_units.py::TestTechnicalRules::test_rsi_18_extreme_oversold_buy PASSED [ 55%]
+tests/test_units.py::TestTechnicalRules::test_rsi_75_overbought_with_upper_band PASSED [ 56%]
+tests/test_units.py::TestTechnicalRules::test_rsi_75_overbought_without_upper_band PASSED [ 56%]
+tests/test_units.py::TestTechnicalRules::test_rsi_25_oversold_with_lower_band PASSED [ 57%]
+tests/test_units.py::TestTechnicalRules::test_rsi_25_oversold_without_lower_band PASSED [ 57%]
+tests/test_units.py::TestTechnicalRules::test_bull_trend_with_volume PASSED [ 58%]
+tests/test_units.py::TestTechnicalRules::test_bull_trend_without_volume PASSED [ 58%]
+tests/test_units.py::TestTechnicalRules::test_bear_trend PASSED          [ 59%]
+tests/test_units.py::TestTechnicalRules::test_price_above_upper_band PASSED [ 59%]
+tests/test_units.py::TestTechnicalRules::test_price_below_lower_band PASSED [ 60%]
+tests/test_units.py::TestTechnicalRules::test_neutral_hold PASSED        [ 60%]
+tests/test_units.py::TestTechnicalRules::test_same_input_same_output_10_times PASSED [ 61%]
+tests/test_units.py::TestHoldingOverride::test_profit_80_buy_to_hold PASSED [ 61%]
+tests/test_units.py::TestHoldingOverride::test_profit_80_hold_confidence_capped PASSED [ 62%]
+tests/test_units.py::TestHoldingOverride::test_profit_50_60_confidence_capped PASSED [ 62%]
+tests/test_units.py::TestHoldingOverride::test_loss_30_hold_confidence_reduced PASSED [ 63%]
+tests/test_units.py::TestHoldingOverride::test_no_holding_no_change PASSED [ 64%]
+tests/test_units.py::TestHoldingOverride::test_small_profit_no_override PASSED [ 64%]
+tests/test_units.py::TestHoldingOverride::test_small_loss_no_override PASSED [ 65%]
+tests/test_units.py::TestHoldingOverride::test_sell_signal_not_overridden_by_profit PASSED [ 65%]
+tests/test_units.py::TestFundamentalDataLevel::test_none_is_C PASSED     [ 66%]
+tests/test_units.py::TestFundamentalDataLevel::test_empty_dict_is_C PASSED [ 66%]
+tests/test_units.py::TestFundamentalDataLevel::test_only_pe_pb_is_B PASSED [ 67%]
+tests/test_units.py::TestFundamentalDataLevel::test_only_total_mv_is_B PASSED [ 67%]
+tests/test_units.py::TestFundamentalDataLevel::test_only_revenue_yoy_is_B PASSED [ 68%]
+tests/test_units.py::TestFundamentalDataLevel::test_full_data_is_A PASSED [ 68%]
+tests/test_units.py::TestFundamentalDataLevel::test_financial_only_is_B PASSED [ 69%]
+tests/test_units.py::TestSentimentScoring::test_buy_signal_when_score_high PASSED [ 69%]
+tests/test_units.py::TestSentimentScoring::test_sell_signal_when_score_low PASSED [ 70%]
+tests/test_units.py::TestSentimentScoring::test_hold_when_neutral PASSED [ 70%]
+tests/test_units.py::TestSentimentScoring::test_rsi_overbought_contributes_negative PASSED [ 71%]
+tests/test_units.py::TestSentimentScoring::test_missing_data_no_crash PASSED [ 71%]
+tests/test_units.py::TestPipelineVoting::test_buy_majority_increases_weight PASSED [ 72%]
+tests/test_units.py::TestPipelineVoting::test_sell_majority_decreases_weight PASSED [ 73%]
+tests/test_units.py::TestPipelineVoting::test_level_c_excluded_from_voting PASSED [ 73%]
+tests/test_units.py::TestPipelineVoting::test_missing_agents_recorded PASSED [ 74%]
+tests/test_units.py::TestPipelineVoting::test_no_valid_signals_forced_hold PASSED [ 74%]
+tests/test_units.py::TestPipelineVoting::test_risk_check_position_limit PASSED [ 75%]
+tests/test_units.py::TestPipelineVoting::test_risk_check_sell_majority PASSED [ 75%]
+tests/test_units.py::TestPipelineVoting::test_risk_check_buy_majority PASSED [ 76%]
+tests/test_units.py::TestPipelineVoting::test_risk_check_mixed_signals PASSED [ 76%]
+tests/test_units.py::TestPipelineVoting::test_is_data_missing_c_level PASSED [ 77%]
+tests/test_units.py::TestPipelineVoting::test_is_data_missing_a_level PASSED [ 77%]
+tests/test_units.py::TestPipelineVoting::test_is_data_missing_no_snapshot PASSED [ 78%]
+tests/test_units.py::TestPortfolioContext::test_get_holding_dict_format PASSED [ 78%]
+tests/test_units.py::TestPortfolioContext::test_get_holding_float_format PASSED [ 79%]
+tests/test_units.py::TestPortfolioContext::test_get_holding_missing_symbol PASSED [ 79%]
+tests/test_units.py::TestPortfolioContext::test_get_holding_no_portfolio PASSED [ 80%]
+tests/test_units.py::TestPortfolioContext::test_format_holding_with_profit PASSED [ 80%]
+tests/test_units.py::TestPortfolioContext::test_format_holding_with_loss PASSED [ 81%]
+tests/test_units.py::TestPortfolioContext::test_format_holding_none PASSED [ 82%]
+tests/test_units.py::TestPortfolioContext::test_format_holding_large_profit_warning PASSED [ 82%]
+tests/test_units.py::TestPortfolioContext::test_format_holding_large_loss_warning PASSED [ 83%]
+tests/test_units.py::TestPortfolioContext::test_portfolio_summary_format PASSED [ 83%]
+tests/test_units.py::TestPortfolioContext::test_portfolio_summary_empty PASSED [ 84%]
+tests/test_units.py::TestSymbolNormalization::test_sz_lower PASSED       [ 84%]
+tests/test_units.py::TestSymbolNormalization::test_sz_upper PASSED       [ 85%]
+tests/test_units.py::TestSymbolNormalization::test_sh_lower PASSED       [ 85%]
+tests/test_units.py::TestSymbolNormalization::test_sh_upper PASSED       [ 86%]
+tests/test_units.py::TestSymbolNormalization::test_bj_lower PASSED       [ 86%]
+tests/test_units.py::TestSymbolNormalization::test_no_prefix PASSED      [ 87%]
+tests/test_units.py::TestSymbolNormalization::test_whitespace PASSED     [ 87%]
+tests/test_units.py::TestSymbolNormalization::test_leading_zero_preserved PASSED [ 88%]
+tests/test_units.py::TestTechnicalIndicators::test_rsi_neutral_when_insufficient_data PASSED [ 88%]
+tests/test_units.py::TestTechnicalIndicators::test_rsi_100_all_up PASSED [ 89%]
+tests/test_units.py::TestTechnicalIndicators::test_rsi_0_all_down PASSED [ 89%]
+tests/test_units.py::TestTechnicalIndicators::test_rsi_range PASSED      [ 90%]
+tests/test_units.py::TestTechnicalIndicators::test_macd_positive_when_short_above_long PASSED [ 91%]
+tests/test_units.py::TestTechnicalIndicators::test_bollinger_width PASSED [ 91%]
+tests/test_units.py::TestTechnicalIndicators::test_bollinger_volatile PASSED [ 92%]
+tests/test_units.py::TestLLMClientMock::test_mock_json_prompt_returns_valid_json PASSED [ 92%]
+tests/test_units.py::TestLLMClientMock::test_mock_text_prompt_returns_non_json PASSED [ 93%]
+tests/test_units.py::TestLLMClientMock::test_mock_json_confidence_in_range PASSED [ 93%]
+tests/test_units.py::TestBacktestEngine::test_run_backtest_returns_all_metrics PASSED [ 94%]
+tests/test_units.py::TestBacktestEngine::test_run_backtest_nav_curve_starts_at_1 PASSED [ 94%]
+tests/test_units.py::TestBacktestEngine::test_run_backtest_too_short_raises PASSED [ 95%]
+tests/test_units.py::TestBacktestEngine::test_run_backtest_deterministic_with_same_seed PASSED [ 95%]
+tests/test_units.py::TestBacktestEngine::test_max_drawdown_non_positive PASSED [ 96%]
+tests/test_units.py::TestGraphService::test_cosine_similarity_identical PASSED [ 96%]
+tests/test_units.py::TestGraphService::test_cosine_similarity_orthogonal PASSED [ 97%]
+tests/test_units.py::TestGraphService::test_cosine_similarity_empty PASSED [ 97%]
+tests/test_units.py::TestGraphService::test_cosine_similarity_different_length PASSED [ 98%]
+tests/test_units.py::TestGraphService::test_make_embedding_deterministic PASSED [ 98%]
+tests/test_units.py::TestGraphService::test_make_embedding_different_for_different_input PASSED [ 99%]
+tests/test_units.py::TestGraphService::test_make_embedding_length_32 PASSED [100%]
+
+================================== FAILURES ===================================
+______________ TestDecisions.test_trigger_empty_symbols_rejected ______________
+tests\test_api.py:62: in test_trigger_empty_symbols_rejected
+    assert r.status_code in (400, 422)
+E   assert 200 in (400, 422)
+E    +  where 200 = <Response [200 OK]>.status_code
+---------------------------- Captured stdout call -----------------------------
+[trigger] decision=07b6956f-2a1d-4195-b91b-16e469f3bcfb  symbols=[]  portfolio=0ֻ
+[pipeline] START decision=07b6956f-2a1d-4195-b91b-16e469f3bcfb symbols=[]
+[pipeline] running technical
+-------------------------- Captured stdout teardown ---------------------------
+[pipeline] technical �� hold (conf=0.5)
+[db_updater] ERROR: (sqlite3.OperationalError) unable to open database file
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+[pipeline] running fundamental
+-------------------------- Captured stderr teardown ---------------------------
+Traceback (most recent call last):
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 146, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 3300, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 712, in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\pool\impl.py", line 308, in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 390, in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 674, in __init__
+    self.__connect()
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\engine\create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 620, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py", line 352, in connect
+    await_only(connection),
+    ^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 131, in await_only
+    return current.driver.switch(awaitable)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\aiosqlite\core.py", line 168, in _connect
+    self._connection = await future
+                       ^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\aiosqlite\core.py", line 63, in _connection_worker_thread
+    result = function()
+             ^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\aiosqlite\core.py", line 466, in connector
+    return sqlite3.connect(loc, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: unable to open database file
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\work\Quant_Trading\sdd_full\backend\routers\decisions.py", line 64, in _db_updater
+    await db.execute(text(sql), bind_params)
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 461, in execute
+    result = await greenlet_spawn(
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2226, in _execute_internal
+    conn = self._connection_for_bind(bind)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2095, in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 2, in _connection_for_bind
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 1189, in _connection_for_bind
+    conn = bind.connect()
+           ^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 3276, in connect
+    return self._connection_cls(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 148, in __init__
+    Connection._handle_dbapi_exception_noconnection(
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2440, in _handle_dbapi_exception_noconnection
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 146, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 3300, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 712, in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\pool\impl.py", line 308, in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 390, in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 674, in __init__
+    self.__connect()
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\engine\create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 620, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py", line 352, in connect
+    await_only(connection),
+    ^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 131, in await_only
+    return current.driver.switch(awaitable)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\aiosqlite\core.py", line 168, in _connect
+    self._connection = await future
+                       ^^^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\aiosqlite\core.py", line 63, in _connection_worker_thread
+    result = function()
+             ^^^^^^^^^^
+  File "D:\work\Quant_Trading\sdd_full\backend\.venv\Lib\site-packages\aiosqlite\core.py", line 466, in connector
+    return sqlite3.connect(loc, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) unable to open database file
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+____________ TestDecisions.test_trigger_blocked_by_emergency_stop _____________
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:924: in do_execute
+    cursor.execute(statement, parameters)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:146: in execute
+    self._adapt_connection._handle_exception(error)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:298: in _handle_exception
+    raise error
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:128: in execute
+    self.await_(_cursor.execute(operation, parameters))
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:131: in await_only
+    return current.driver.switch(awaitable)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\cursor.py:40: in execute
+    await self._execute(self._cursor.execute, sql, parameters)
+.venv\Lib\site-packages\aiosqlite\cursor.py:32: in _execute
+    return await self._conn._execute(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:160: in _execute
+    return await future
+           ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:63: in _connection_worker_thread
+    result = function()
+             ^^^^^^^^^^
+E   sqlite3.OperationalError: no such table: risk_configs
+
+The above exception was the direct cause of the following exception:
+tests\test_api.py:70: in test_trigger_blocked_by_emergency_stop
+    await db.execute(text("UPDATE risk_configs SET emergency_stop_active=1 WHERE id=1"))
+.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py:461: in execute
+    result = await greenlet_spawn(
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:201: in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2351: in execute
+    return self._execute_internal(
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2245: in _execute_internal
+    result = conn.execute(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1418: in execute
+    return meth(
+.venv\Lib\site-packages\sqlalchemy\sql\elements.py:515: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1640: in _execute_clauseelement
+    ret = self._execute_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:2353: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:924: in do_execute
+    cursor.execute(statement, parameters)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:146: in execute
+    self._adapt_connection._handle_exception(error)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:298: in _handle_exception
+    raise error
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:128: in execute
+    self.await_(_cursor.execute(operation, parameters))
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:131: in await_only
+    return current.driver.switch(awaitable)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\cursor.py:40: in execute
+    await self._execute(self._cursor.execute, sql, parameters)
+.venv\Lib\site-packages\aiosqlite\cursor.py:32: in _execute
+    return await self._conn._execute(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:160: in _execute
+    return await future
+           ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:63: in _connection_worker_thread
+    result = function()
+             ^^^^^^^^^^
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+E   [SQL: UPDATE risk_configs SET emergency_stop_active=1 WHERE id=1]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+__________ TestDecisions.test_trigger_blocked_by_circuit_breaker_l2 ___________
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:924: in do_execute
+    cursor.execute(statement, parameters)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:146: in execute
+    self._adapt_connection._handle_exception(error)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:298: in _handle_exception
+    raise error
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:128: in execute
+    self.await_(_cursor.execute(operation, parameters))
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:131: in await_only
+    return current.driver.switch(awaitable)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\cursor.py:40: in execute
+    await self._execute(self._cursor.execute, sql, parameters)
+.venv\Lib\site-packages\aiosqlite\cursor.py:32: in _execute
+    return await self._conn._execute(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:160: in _execute
+    return await future
+           ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:63: in _connection_worker_thread
+    result = function()
+             ^^^^^^^^^^
+E   sqlite3.OperationalError: no such table: risk_configs
+
+The above exception was the direct cause of the following exception:
+tests\test_api.py:84: in test_trigger_blocked_by_circuit_breaker_l2
+    await db.execute(text("UPDATE risk_configs SET circuit_breaker_level=2 WHERE id=1"))
+.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py:461: in execute
+    result = await greenlet_spawn(
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:201: in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2351: in execute
+    return self._execute_internal(
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2245: in _execute_internal
+    result = conn.execute(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1418: in execute
+    return meth(
+.venv\Lib\site-packages\sqlalchemy\sql\elements.py:515: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1640: in _execute_clauseelement
+    ret = self._execute_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:2353: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:924: in do_execute
+    cursor.execute(statement, parameters)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:146: in execute
+    self._adapt_connection._handle_exception(error)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:298: in _handle_exception
+    raise error
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:128: in execute
+    self.await_(_cursor.execute(operation, parameters))
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:131: in await_only
+    return current.driver.switch(awaitable)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\cursor.py:40: in execute
+    await self._execute(self._cursor.execute, sql, parameters)
+.venv\Lib\site-packages\aiosqlite\cursor.py:32: in _execute
+    return await self._conn._execute(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:160: in _execute
+    return await future
+           ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:63: in _connection_worker_thread
+    result = function()
+             ^^^^^^^^^^
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+E   [SQL: UPDATE risk_configs SET circuit_breaker_level=2 WHERE id=1]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+____________ TestApprovals.test_approve_blocked_by_emergency_stop _____________
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:924: in do_execute
+    cursor.execute(statement, parameters)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:146: in execute
+    self._adapt_connection._handle_exception(error)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:298: in _handle_exception
+    raise error
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:128: in execute
+    self.await_(_cursor.execute(operation, parameters))
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:131: in await_only
+    return current.driver.switch(awaitable)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\cursor.py:40: in execute
+    await self._execute(self._cursor.execute, sql, parameters)
+.venv\Lib\site-packages\aiosqlite\cursor.py:32: in _execute
+    return await self._conn._execute(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:160: in _execute
+    return await future
+           ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:63: in _connection_worker_thread
+    result = function()
+             ^^^^^^^^^^
+E   sqlite3.OperationalError: no such table: risk_configs
+
+The above exception was the direct cause of the following exception:
+tests\test_api.py:293: in test_approve_blocked_by_emergency_stop
+    await db.execute(text("UPDATE risk_configs SET emergency_stop_active=1 WHERE id=1"))
+.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py:461: in execute
+    result = await greenlet_spawn(
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:201: in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2351: in execute
+    return self._execute_internal(
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2245: in _execute_internal
+    result = conn.execute(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1418: in execute
+    return meth(
+.venv\Lib\site-packages\sqlalchemy\sql\elements.py:515: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1640: in _execute_clauseelement
+    ret = self._execute_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:2353: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:924: in do_execute
+    cursor.execute(statement, parameters)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:146: in execute
+    self._adapt_connection._handle_exception(error)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:298: in _handle_exception
+    raise error
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:128: in execute
+    self.await_(_cursor.execute(operation, parameters))
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:131: in await_only
+    return current.driver.switch(awaitable)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\cursor.py:40: in execute
+    await self._execute(self._cursor.execute, sql, parameters)
+.venv\Lib\site-packages\aiosqlite\cursor.py:32: in _execute
+    return await self._conn._execute(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:160: in _execute
+    return await future
+           ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:63: in _connection_worker_thread
+    result = function()
+             ^^^^^^^^^^
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+E   [SQL: UPDATE risk_configs SET emergency_stop_active=1 WHERE id=1]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+_____________________ TestRisk.test_circuit_breaker_reset _____________________
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:924: in do_execute
+    cursor.execute(statement, parameters)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:146: in execute
+    self._adapt_connection._handle_exception(error)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:298: in _handle_exception
+    raise error
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:128: in execute
+    self.await_(_cursor.execute(operation, parameters))
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:131: in await_only
+    return current.driver.switch(awaitable)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\cursor.py:40: in execute
+    await self._execute(self._cursor.execute, sql, parameters)
+.venv\Lib\site-packages\aiosqlite\cursor.py:32: in _execute
+    return await self._conn._execute(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:160: in _execute
+    return await future
+           ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:63: in _connection_worker_thread
+    result = function()
+             ^^^^^^^^^^
+E   sqlite3.OperationalError: no such table: risk_configs
+
+The above exception was the direct cause of the following exception:
+tests\test_api.py:451: in test_circuit_breaker_reset
+    await db.execute(text("UPDATE risk_configs SET circuit_breaker_level=2 WHERE id=1"))
+.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py:461: in execute
+    result = await greenlet_spawn(
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:201: in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2351: in execute
+    return self._execute_internal(
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2245: in _execute_internal
+    result = conn.execute(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1418: in execute
+    return meth(
+.venv\Lib\site-packages\sqlalchemy\sql\elements.py:515: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1640: in _execute_clauseelement
+    ret = self._execute_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:2353: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:924: in do_execute
+    cursor.execute(statement, parameters)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:146: in execute
+    self._adapt_connection._handle_exception(error)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:298: in _handle_exception
+    raise error
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:128: in execute
+    self.await_(_cursor.execute(operation, parameters))
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:131: in await_only
+    return current.driver.switch(awaitable)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\cursor.py:40: in execute
+    await self._execute(self._cursor.execute, sql, parameters)
+.venv\Lib\site-packages\aiosqlite\cursor.py:32: in _execute
+    return await self._conn._execute(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:160: in _execute
+    return await future
+           ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:63: in _connection_worker_thread
+    result = function()
+             ^^^^^^^^^^
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+E   [SQL: UPDATE risk_configs SET circuit_breaker_level=2 WHERE id=1]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+_ TestScenario03CircuitBreakerLevels.test_circuit_breaker_behavior[0-True-True] _
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:924: in do_execute
+    cursor.execute(statement, parameters)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:146: in execute
+    self._adapt_connection._handle_exception(error)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:298: in _handle_exception
+    raise error
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:128: in execute
+    self.await_(_cursor.execute(operation, parameters))
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:131: in await_only
+    return current.driver.switch(awaitable)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\cursor.py:40: in execute
+    await self._execute(self._cursor.execute, sql, parameters)
+.venv\Lib\site-packages\aiosqlite\cursor.py:32: in _execute
+    return await self._conn._execute(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:160: in _execute
+    return await future
+           ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:63: in _connection_worker_thread
+    result = function()
+             ^^^^^^^^^^
+E   sqlite3.OperationalError: no such table: risk_configs
+
+The above exception was the direct cause of the following exception:
+tests\test_scenarios.py:152: in test_circuit_breaker_behavior
+    await db.execute(text(
+.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py:461: in execute
+    result = await greenlet_spawn(
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:201: in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2351: in execute
+    return self._execute_internal(
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2245: in _execute_internal
+    result = conn.execute(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1418: in execute
+    return meth(
+.venv\Lib\site-packages\sqlalchemy\sql\elements.py:515: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1640: in _execute_clauseelement
+    ret = self._execute_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:2353: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:924: in do_execute
+    cursor.execute(statement, parameters)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:146: in execute
+    self._adapt_connection._handle_exception(error)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:298: in _handle_exception
+    raise error
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:128: in execute
+    self.await_(_cursor.execute(operation, parameters))
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:131: in await_only
+    return current.driver.switch(awaitable)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\cursor.py:40: in execute
+    await self._execute(self._cursor.execute, sql, parameters)
+.venv\Lib\site-packages\aiosqlite\cursor.py:32: in _execute
+    return await self._conn._execute(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:160: in _execute
+    return await future
+           ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:63: in _connection_worker_thread
+    result = function()
+             ^^^^^^^^^^
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+E   [SQL: UPDATE risk_configs SET circuit_breaker_level=0 WHERE id=1]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+_ TestScenario03CircuitBreakerLevels.test_circuit_breaker_behavior[1-True-True] _
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:924: in do_execute
+    cursor.execute(statement, parameters)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:146: in execute
+    self._adapt_connection._handle_exception(error)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:298: in _handle_exception
+    raise error
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:128: in execute
+    self.await_(_cursor.execute(operation, parameters))
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:131: in await_only
+    return current.driver.switch(awaitable)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\cursor.py:40: in execute
+    await self._execute(self._cursor.execute, sql, parameters)
+.venv\Lib\site-packages\aiosqlite\cursor.py:32: in _execute
+    return await self._conn._execute(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:160: in _execute
+    return await future
+           ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:63: in _connection_worker_thread
+    result = function()
+             ^^^^^^^^^^
+E   sqlite3.OperationalError: no such table: risk_configs
+
+The above exception was the direct cause of the following exception:
+tests\test_scenarios.py:152: in test_circuit_breaker_behavior
+    await db.execute(text(
+.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py:461: in execute
+    result = await greenlet_spawn(
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:201: in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2351: in execute
+    return self._execute_internal(
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2245: in _execute_internal
+    result = conn.execute(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1418: in execute
+    return meth(
+.venv\Lib\site-packages\sqlalchemy\sql\elements.py:515: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1640: in _execute_clauseelement
+    ret = self._execute_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:2353: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:924: in do_execute
+    cursor.execute(statement, parameters)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:146: in execute
+    self._adapt_connection._handle_exception(error)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:298: in _handle_exception
+    raise error
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:128: in execute
+    self.await_(_cursor.execute(operation, parameters))
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:131: in await_only
+    return current.driver.switch(awaitable)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\cursor.py:40: in execute
+    await self._execute(self._cursor.execute, sql, parameters)
+.venv\Lib\site-packages\aiosqlite\cursor.py:32: in _execute
+    return await self._conn._execute(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:160: in _execute
+    return await future
+           ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:63: in _connection_worker_thread
+    result = function()
+             ^^^^^^^^^^
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+E   [SQL: UPDATE risk_configs SET circuit_breaker_level=1 WHERE id=1]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+_ TestScenario03CircuitBreakerLevels.test_circuit_breaker_behavior[2-False-False] _
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:924: in do_execute
+    cursor.execute(statement, parameters)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:146: in execute
+    self._adapt_connection._handle_exception(error)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:298: in _handle_exception
+    raise error
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:128: in execute
+    self.await_(_cursor.execute(operation, parameters))
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:131: in await_only
+    return current.driver.switch(awaitable)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\cursor.py:40: in execute
+    await self._execute(self._cursor.execute, sql, parameters)
+.venv\Lib\site-packages\aiosqlite\cursor.py:32: in _execute
+    return await self._conn._execute(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:160: in _execute
+    return await future
+           ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:63: in _connection_worker_thread
+    result = function()
+             ^^^^^^^^^^
+E   sqlite3.OperationalError: no such table: risk_configs
+
+The above exception was the direct cause of the following exception:
+tests\test_scenarios.py:152: in test_circuit_breaker_behavior
+    await db.execute(text(
+.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py:461: in execute
+    result = await greenlet_spawn(
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:201: in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2351: in execute
+    return self._execute_internal(
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2245: in _execute_internal
+    result = conn.execute(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1418: in execute
+    return meth(
+.venv\Lib\site-packages\sqlalchemy\sql\elements.py:515: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1640: in _execute_clauseelement
+    ret = self._execute_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:2353: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:924: in do_execute
+    cursor.execute(statement, parameters)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:146: in execute
+    self._adapt_connection._handle_exception(error)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:298: in _handle_exception
+    raise error
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:128: in execute
+    self.await_(_cursor.execute(operation, parameters))
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:131: in await_only
+    return current.driver.switch(awaitable)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\cursor.py:40: in execute
+    await self._execute(self._cursor.execute, sql, parameters)
+.venv\Lib\site-packages\aiosqlite\cursor.py:32: in _execute
+    return await self._conn._execute(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:160: in _execute
+    return await future
+           ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:63: in _connection_worker_thread
+    result = function()
+             ^^^^^^^^^^
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+E   [SQL: UPDATE risk_configs SET circuit_breaker_level=2 WHERE id=1]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+_ TestScenario03CircuitBreakerLevels.test_circuit_breaker_behavior[3-False-False] _
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:924: in do_execute
+    cursor.execute(statement, parameters)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:146: in execute
+    self._adapt_connection._handle_exception(error)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:298: in _handle_exception
+    raise error
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:128: in execute
+    self.await_(_cursor.execute(operation, parameters))
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:131: in await_only
+    return current.driver.switch(awaitable)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\cursor.py:40: in execute
+    await self._execute(self._cursor.execute, sql, parameters)
+.venv\Lib\site-packages\aiosqlite\cursor.py:32: in _execute
+    return await self._conn._execute(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:160: in _execute
+    return await future
+           ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:63: in _connection_worker_thread
+    result = function()
+             ^^^^^^^^^^
+E   sqlite3.OperationalError: no such table: risk_configs
+
+The above exception was the direct cause of the following exception:
+tests\test_scenarios.py:152: in test_circuit_breaker_behavior
+    await db.execute(text(
+.venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py:461: in execute
+    result = await greenlet_spawn(
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:201: in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2351: in execute
+    return self._execute_internal(
+.venv\Lib\site-packages\sqlalchemy\orm\session.py:2245: in _execute_internal
+    result = conn.execute(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1418: in execute
+    return meth(
+.venv\Lib\site-packages\sqlalchemy\sql\elements.py:515: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1640: in _execute_clauseelement
+    ret = self._execute_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1846: in _execute_context
+    return self._exec_single_context(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:2353: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+.venv\Lib\site-packages\sqlalchemy\engine\default.py:924: in do_execute
+    cursor.execute(statement, parameters)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:146: in execute
+    self._adapt_connection._handle_exception(error)
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:298: in _handle_exception
+    raise error
+.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\aiosqlite.py:128: in execute
+    self.await_(_cursor.execute(operation, parameters))
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:131: in await_only
+    return current.driver.switch(awaitable)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\cursor.py:40: in execute
+    await self._execute(self._cursor.execute, sql, parameters)
+.venv\Lib\site-packages\aiosqlite\cursor.py:32: in _execute
+    return await self._conn._execute(fn, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:160: in _execute
+    return await future
+           ^^^^^^^^^^^^
+.venv\Lib\site-packages\aiosqlite\core.py:63: in _connection_worker_thread
+    result = function()
+             ^^^^^^^^^^
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+E   [SQL: UPDATE risk_configs SET circuit_breaker_level=3 WHERE id=1]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+=========================== short test summary info ===========================
+FAILED tests/test_api.py::TestDecisions::test_trigger_empty_symbols_rejected - assert 200 in (400, 422)
+ +  where 200 = <Response [200 OK]>.status_code
+FAILED tests/test_api.py::TestDecisions::test_trigger_blocked_by_emergency_stop - sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+[SQL: UPDATE risk_configs SET emergency_stop_active=1 WHERE id=1]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+FAILED tests/test_api.py::TestDecisions::test_trigger_blocked_by_circuit_breaker_l2 - sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+[SQL: UPDATE risk_configs SET circuit_breaker_level=2 WHERE id=1]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+FAILED tests/test_api.py::TestApprovals::test_approve_blocked_by_emergency_stop - sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+[SQL: UPDATE risk_configs SET emergency_stop_active=1 WHERE id=1]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+FAILED tests/test_api.py::TestRisk::test_circuit_breaker_reset - sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+[SQL: UPDATE risk_configs SET circuit_breaker_level=2 WHERE id=1]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+FAILED tests/test_scenarios.py::TestScenario03CircuitBreakerLevels::test_circuit_breaker_behavior[0-True-True] - sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+[SQL: UPDATE risk_configs SET circuit_breaker_level=0 WHERE id=1]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+FAILED tests/test_scenarios.py::TestScenario03CircuitBreakerLevels::test_circuit_breaker_behavior[1-True-True] - sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+[SQL: UPDATE risk_configs SET circuit_breaker_level=1 WHERE id=1]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+FAILED tests/test_scenarios.py::TestScenario03CircuitBreakerLevels::test_circuit_breaker_behavior[2-False-False] - sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+[SQL: UPDATE risk_configs SET circuit_breaker_level=2 WHERE id=1]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+FAILED tests/test_scenarios.py::TestScenario03CircuitBreakerLevels::test_circuit_breaker_behavior[3-False-False] - sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: risk_configs
+[SQL: UPDATE risk_configs SET circuit_breaker_level=3 WHERE id=1]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+======================= 9 failed, 180 passed in 13.51s ========================

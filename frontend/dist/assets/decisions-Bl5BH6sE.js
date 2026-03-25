@@ -1,0 +1,1 @@
+import{D as t}from"./index-BlUxqD--.js";const e={trigger(i){return t.post("/api/v1/decisions/trigger",i)},get(i){return t.get(`/api/v1/decisions/${i}`)},list(i){return t.get("/api/v1/decisions/",{params:i})},stats(i){return t.get("/api/v1/decisions/stats",{params:i})}};export{e as d};

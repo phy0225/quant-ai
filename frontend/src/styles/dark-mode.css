@@ -1,0 +1,122 @@
+/* ===================================================
+   暗色模式专用覆盖样式
+   通过 [data-theme="light"] 选择器控制亮色模式下的特殊处理
+   默认（:root）即为暗色模式
+   =================================================== */
+
+/* ===== ECharts 图表在暗色模式下的背景处理 ===== */
+.echarts-container {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* ECharts tooltip 背景 */
+.echarts-tooltip {
+  background: var(--viz-tooltip-bg) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-primary) !important;
+}
+
+/* ===== 表格行 hover 颜色 ===== */
+table tbody tr:hover {
+  background-color: var(--bg-hover);
+}
+
+table tbody tr:hover td {
+  background-color: transparent;
+}
+
+/* ===== 输入框、选择框暗色样式 ===== */
+select option {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+/* ===== 亮色模式下的特殊覆盖 ===== */
+[data-theme="light"] .card {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+}
+
+[data-theme="light"] .card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08);
+}
+
+/* 亮色模式下 ECharts 图表背景 */
+[data-theme="light"] .echarts-container {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* ===== 滚动条在亮色模式 ===== */
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: #C8D0E0;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: #A0AABB;
+}
+
+/* ===== 代码块样式 ===== */
+code,
+pre {
+  font-family: var(--font-data);
+  font-size: var(--text-sm);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--brand-secondary);
+}
+
+code {
+  padding: 1px 6px;
+}
+
+pre {
+  padding: var(--space-3);
+  overflow-x: auto;
+}
+
+/* ===== 模态/对话框遮罩 ===== */
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+[data-theme="light"] .modal-overlay {
+  background: rgba(15, 17, 23, 0.5);
+}
+
+/* ===== 紧急状态横幅 ===== */
+.emergency-banner {
+  background: linear-gradient(90deg, var(--negative) 0%, #C0181F 100%);
+  color: #FFFFFF;
+}
+
+/* ===== WebSocket 状态指示器 ===== */
+.ws-dot-connected {
+  background-color: var(--positive);
+  box-shadow: 0 0 6px var(--positive);
+}
+
+.ws-dot-connecting {
+  background-color: var(--warning);
+}
+
+.ws-dot-disconnected {
+  background-color: var(--negative);
+}
+
+.ws-dot-fallback {
+  background-color: #F5A623;
+}
+
+/* ===== 熔断状态颜色 ===== */
+.circuit-normal    { color: var(--positive); }
+.circuit-warning   { color: var(--warning); }
+.circuit-suspended { color: #F97316; }
+.circuit-emergency { color: var(--negative); }
+
+.circuit-bg-normal    { background-color: var(--positive-subtle); border-color: var(--positive); }
+.circuit-bg-warning   { background-color: var(--warning-subtle);  border-color: var(--warning); }
+.circuit-bg-suspended { background-color: #3D2008; border-color: #F97316; }
+.circuit-bg-emergency { background-color: var(--negative-subtle); border-color: var(--negative); }

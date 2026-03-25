@@ -1,0 +1,202 @@
+/* ===================================================
+   CSS 设计 Token 体系
+   Dark Mode 为默认（:root），Light Mode 通过 [data-theme="light"] 覆盖
+   =================================================== */
+
+/* ===== Dark Mode（默认） ===== */
+:root {
+  /* 背景层级 */
+  --bg-base:     #0F1117;
+  --bg-surface:  #171B26;
+  --bg-elevated: #1E2333;
+  --bg-overlay:  #252B3D;
+  --bg-hover:    #2A3150;
+  --bg-selected: #1A2B4A;
+  --bg-input:    #1E2333;
+  --bg-disabled: #171B26;
+
+  /* 边框 */
+  --border-subtle:  #2A3150;
+  --border-default: #3A4560;
+  --border-strong:  #4F5E80;
+  --border-focus:   #4F7EFF;
+  --border-error:   #F5474F;
+  --border-warning: #F5A623;
+
+  /* 文字 */
+  --text-primary:   #E8EAF0;
+  --text-secondary: #9AA0B4;
+  --text-tertiary:  #5C6380;
+  --text-disabled:  #3A4060;
+  --text-inverse:   #0F1117;
+  --text-link:      #4F7EFF;
+  --text-on-brand:  #FFFFFF;
+
+  /* 品牌色 */
+  --brand-primary:          #4F7EFF;
+  --brand-primary-hover:    #6B94FF;
+  --brand-primary-active:   #3A66E0;
+  --brand-primary-subtle:   #1A2B4A;
+  --brand-secondary:        #7C5CFC;
+  --brand-secondary-subtle: #2A1A50;
+
+  /* 语义状态色 */
+  --positive:        #2DC87A;
+  --positive-hover:  #3AD988;
+  --positive-subtle: #0D3020;
+  --negative:        #F5474F;
+  --negative-hover:  #FF5C63;
+  --negative-subtle: #3D1015;
+  --warning:         #F5A623;
+  --warning-hover:   #FFB73A;
+  --warning-subtle:  #3D2A08;
+  --neutral:         #5C7EC7;
+  --neutral-subtle:  #1A2540;
+  --disabled:        #3A4060;
+
+  /* 间距系统（4px 基础单位） */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* 圆角 */
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+  --radius-full: 9999px;
+
+  /* 阴影（暗色用边框描边形式） */
+  --shadow-card:       0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3);
+  --shadow-elevated:   0 4px 16px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-modal:      0 20px 60px rgba(0,0,0,0.7), 0 8px 20px rgba(0,0,0,0.5);
+  --shadow-drawer:     -4px 0 24px rgba(0,0,0,0.5);
+  --shadow-focus:      0 0 0 3px rgba(79,126,255,0.35);
+  --shadow-focus-danger: 0 0 0 3px rgba(245,71,79,0.35);
+
+  /* 动效 */
+  --duration-instant: 80ms;
+  --duration-fast:    150ms;
+  --duration-normal:  250ms;
+  --duration-slow:    350ms;
+  --duration-modal:   200ms;
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-enter:   cubic-bezier(0, 0, 0.2, 1);
+  --ease-exit:    cubic-bezier(0.4, 0, 1, 1);
+  --ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* 字体 */
+  --font-ui:   'Inter', 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+  --font-data: 'JetBrains Mono', 'SF Mono', 'Consolas', 'Courier New', monospace;
+
+  /* 字号 / 行高 */
+  --text-2xs:  11px;
+  --text-xs:   12px;
+  --text-sm:   13px;
+  --text-base: 14px;
+  --text-md:   16px;
+  --text-lg:   20px;
+  --text-xl:   24px;
+  --text-2xl:  32px;
+
+  /* 数据字体字号 */
+  --data-sm:   12px;
+  --data-base: 13px;
+  --data-md:   14px;
+  --data-lg:   20px;
+  --data-xl:   32px;
+
+  /* 图表专用色 */
+  --viz-line-primary:     #4F7EFF;
+  --viz-line-benchmark:   #5C6380;
+  --viz-line-secondary:   #7C5CFC;
+  --viz-grid:             #2A3150;
+  --viz-axis:             #3A4560;
+  --viz-axis-label:       #5C6380;
+  --viz-tooltip-bg:       #1E2333;
+  --viz-crosshair:        #4F7EFF;
+  --viz-selection-fill:   rgba(79,126,255,0.12);
+  --viz-selection-border: #4F7EFF;
+
+  /* 图表调色板（多系列） */
+  --viz-color-1: #4F7EFF;
+  --viz-color-2: #7C5CFC;
+  --viz-color-3: #2DC87A;
+  --viz-color-4: #F5A623;
+  --viz-color-5: #F5474F;
+  --viz-color-6: #5C7EC7;
+  --viz-color-7: #3AD988;
+  --viz-color-8: #FFB73A;
+
+  /* 布局尺寸 */
+  --topbar-height:   56px;
+  --sidebar-width:   200px;
+  --sidebar-collapsed-width: 60px;
+}
+
+/* ===== Light Mode 覆盖 ===== */
+[data-theme="light"] {
+  --bg-base:     #F4F6FA;
+  --bg-surface:  #FFFFFF;
+  --bg-elevated: #F8F9FC;
+  --bg-overlay:  #EEF0F7;
+  --bg-hover:    #E8EBF4;
+  --bg-selected: #DDEAFB;
+  --bg-input:    #FFFFFF;
+  --bg-disabled: #F4F6FA;
+
+  --border-subtle:  #E2E6F0;
+  --border-default: #C8D0E0;
+  --border-strong:  #A0AABB;
+  --border-focus:   #2B5CE6;
+  --border-error:   #D93025;
+  --border-warning: #C47E00;
+
+  --text-primary:   #1A1D2E;
+  --text-secondary: #4A5270;
+  --text-tertiary:  #8A90A8;
+  --text-disabled:  #C0C5D5;
+  --text-inverse:   #FFFFFF;
+  --text-link:      #2B5CE6;
+  --text-on-brand:  #FFFFFF;
+
+  --brand-primary:          #2B5CE6;
+  --brand-primary-hover:    #1A4ACC;
+  --brand-primary-active:   #1038B0;
+  --brand-primary-subtle:   #DDEAFB;
+  --brand-secondary:        #6B3FE0;
+  --brand-secondary-subtle: #EDE8FD;
+
+  --positive:        #0E9E58;
+  --positive-hover:  #0C8A4C;
+  --positive-subtle: #D5F2E5;
+  --negative:        #D93025;
+  --negative-hover:  #BF2218;
+  --negative-subtle: #FDDDDB;
+  --warning:         #C47E00;
+  --warning-hover:   #A86C00;
+  --warning-subtle:  #FFF3CD;
+  --neutral:         #3A5CA8;
+  --neutral-subtle:  #D8E4F8;
+  --disabled:        #C0C5D5;
+
+  --shadow-card:       0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08);
+  --shadow-elevated:   0 4px 16px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-modal:      0 20px 60px rgba(0,0,0,0.2), 0 8px 20px rgba(0,0,0,0.12);
+  --shadow-drawer:     -4px 0 24px rgba(0,0,0,0.1);
+  --shadow-focus:      0 0 0 3px rgba(43,92,230,0.3);
+  --shadow-focus-danger: 0 0 0 3px rgba(217,48,37,0.3);
+
+  --viz-grid:       #E2E6F0;
+  --viz-axis:       #C8D0E0;
+  --viz-axis-label: #8A90A8;
+  --viz-tooltip-bg: #FFFFFF;
+}
