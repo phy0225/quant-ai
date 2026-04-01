@@ -1,28 +1,29 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import ActionButton from '@/components/ui/ActionButton.vue'
 import AgentSignalCard from '@/components/domain/AgentSignalCard.vue'
 import TagBadge from '@/components/ui/TagBadge.vue'
 import { decisionsApi } from '@/api/decisions'
-import type { DecisionRun } from '@/types/decision'
+import { useAnalysisStore } from '@/store/analysis'
 
 const router = useRouter()
 const route  = useRoute()
+const store  = useAnalysisStore()
+const { currentRun, isPolling } = storeToRefs(store)
 
 // ── 表单 ──────────────────────────────────────────────────────────────────
-const symbolsInput = ref('')
+const symbolsInput   = ref('')
 const portfolioInput = ref('')
 
-// ── 状态 ──────────────────────────────────────────────────────────────────
-const currentRun   = ref<DecisionRun | null>(null)
-const isSubmitting = ref(false)   // 正在提交触发请求
-const isPolling    = ref(false)   // 正在轮询结果
+// ── 局部状态 ──────────────────────────────────────────────────────────────
+const isSubmitting = ref(false)
 const errorMsg     = ref('')
 const elapsedTime  = ref(0)
 
 // ── 计时器 ────────────────────────────────────────────────────────────────
-let pollTimer:    ReturnType<typeof setTimeout> | null = null
+let pollTimer:    ReturnType<typeof setTimeout>  | null = null
 let elapsedTimer: ReturnType<typeof setInterval> | null = null
 
 function startElapsed() {
@@ -34,22 +35,27 @@ function stopElapsed() {
   if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null }
 }
 
-function stopPolling() {
-  isPolling.value = false
+// 仅清理计时器——路由离开时调用，store 状态保留
+function clearTimer() {
   if (pollTimer) { clearTimeout(pollTimer); pollTimer = null }
   stopElapsed()
 }
 
-onUnmounted(stopPolling)
+// 完全停止轮询：清计时器 + 清 store（任务完成/失败/404 时调用）
+function stopPolling() {
+  clearTimer()
+  store.clearActiveRun()
+}
+
+onUnmounted(clearTimer)
+
 // ── 初始化：读取 URL 参数 + 自动填入持仓 ─────────────────────────────────
 async function loadPortfolioFromDB() {
-  // 优先读取 URL query 参数（从持仓页点「分析」跳转过来）
   const qs = route.query.symbols as string | undefined
   const qp = route.query.portfolio as string | undefined
   if (qs) symbolsInput.value = qs
   if (qp) { portfolioInput.value = qp; return }
 
-  // 没有 query 参数时，自动从后端读取当前持仓
   try {
     const res = await fetch('/api/v1/portfolio/')
     const data = await res.json()
@@ -64,11 +70,17 @@ async function loadPortfolioFromDB() {
   }
 }
 
-onMounted(loadPortfolioFromDB)
+onMounted(async () => {
+  await loadPortfolioFromDB()
+  // 恢复未完成的分析任务（路由返回 或 刷新浏览器）
+  if (store.activeRunId) {
+    startPolling(store.activeRunId)
+  }
+})
 
 // ── 轮询 ──────────────────────────────────────────────────────────────────
 function startPolling(id: string) {
-  stopPolling()
+  clearTimer()
   isPolling.value = true
   startElapsed()
   let pollCount = 0
@@ -76,13 +88,17 @@ function startPolling(id: string) {
   const doPoll = async () => {
     try {
       const run = await decisionsApi.get(id)
-      currentRun.value = run
+      store.setActiveRun(run)
       if (run.status === 'completed' || run.status === 'failed') {
         stopPolling()
         return
       }
-    } catch {
-      // 网络抖动忽略
+    } catch (err: any) {
+      if (err?.response?.status === 404) {
+        stopPolling()
+        return
+      }
+      // 其他网络抖动忽略
     }
     if (!isPolling.value) return
     pollCount++
@@ -111,10 +127,9 @@ async function handleTrigger() {
     .split(',').map(s => s.trim().toUpperCase()).filter(Boolean)
   if (!symbols.length) return
 
-  // 重置状态
-  currentRun.value = null
-  errorMsg.value   = ''
-  stopPolling()
+  store.clearActiveRun()
+  errorMsg.value     = ''
+  clearTimer()
   isSubmitting.value = true
 
   try {
@@ -122,7 +137,7 @@ async function handleTrigger() {
       symbols,
       current_portfolio: parsePortfolio(),
     })
-    currentRun.value = run
+    store.setActiveRun(run)
     startPolling(run.id)
   } catch (e: any) {
     errorMsg.value = e?.response?.data?.detail
@@ -147,11 +162,9 @@ function stepStatus(key: string): 'done' | 'active' | 'waiting' {
   const signals = currentRun.value?.agent_signals ?? []
   if (signals.some((s: any) => s.agent_type === key)) return 'done'
   if (!isPolling.value) return 'waiting'
-  // 前4个并行：未完成的都标 active
   const analystKeys = ['technical', 'fundamental', 'news', 'sentiment']
   const analystsDone = signals.filter((s: any) => analystKeys.includes(s.agent_type)).length
   if (analystsDone < 4 && analystKeys.includes(key)) return 'active'
-  // 风控和执行顺序
   if (key === 'risk' && analystsDone >= 4 && !signals.some((s: any) => s.agent_type === 'risk')) return 'active'
   if (key === 'executor' && signals.some((s: any) => s.agent_type === 'risk') && !signals.some((s: any) => s.agent_type === 'executor')) return 'active'
   return 'waiting'
@@ -162,10 +175,8 @@ const progressPct = computed(() => {
   return Math.round((n / 6) * 100)
 })
 
-// 是否正在运行（提交中 or 轮询中）
 const isRunning = computed(() => isSubmitting.value || isPolling.value)
 
-// 是否展示右侧内容区
 const showPanel = computed(() =>
   isSubmitting.value || isPolling.value || currentRun.value !== null || !!errorMsg.value
 )
