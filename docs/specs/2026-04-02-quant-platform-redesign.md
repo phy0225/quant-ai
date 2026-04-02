@@ -186,9 +186,10 @@ CREATE TABLE decision_runs (
   candidate_symbols   JSON,
   current_portfolio   JSON,
   factor_snapshot_id  VARCHAR(36),
+  factor_date         DATE,         -- 实际使用的因子快照日期，fallback时与started_at日期不同
   strategy_version_id VARCHAR(36),
   market_regime       VARCHAR(20),
-  final_direction     VARCHAR(10),
+  final_direction     VARCHAR(10),  -- Mode A 专用，Mode B 为 NULL
   risk_level          VARCHAR(10),
   error_message       TEXT,
   started_at          DATETIME DEFAULT NOW(),
@@ -472,6 +473,14 @@ Step 5  Risk Agent
 Step 6  Executor（加权投票）
         Mode A：weights 从 agent_weight_configs 读取 → final_direction
         Mode B：composite_score → 组合优化器 → rebalance_orders
+
+Step 7  写入 agent_performance 待结算行
+        Pipeline 完成（decision_run 状态变 completed）后，
+        为每条 agent_signal 创建一条 agent_performance 记录：
+          predicted_direction = agent_signal.direction
+          predicted_at        = agent_signal.created_at
+          settlement_date     = started_at + 5 个交易日（via is_trading_day 日历）
+          actual_return / is_correct = NULL（等待每日结算任务填写）
 ```
 
 ### FactorContext 结构
@@ -760,6 +769,7 @@ async def run_evolution(base_version_id: str, experiment_id: str):
 | routers/backtest.py | 重构 | 修复 Session Bug；接新回测引擎 |
 | routers/graph.py | 扩展 | 适配新 graph_nodes schema |
 | routers/factors.py | 新增 | |
+| routers/features.py | 新增 | 特征平台代理接口（透传 feature_client） |
 | routers/strategy.py | 新增 | |
 | routers/candidate.py | 新增 | |
 | routers/settlement.py | 新增 | |
@@ -795,6 +805,7 @@ async def run_evolution(base_version_id: str, experiment_id: str):
 | db/queries/settlement.py | 新增 | |
 | db/queries/backtest.py | 新增 | |
 | db/queries/agent_weights.py | 新增 | |
+| db/queries/nav_history.py | 新增 | portfolio_nav_history 读写 |
 | tests/conftest.py | 更新 | MySQL 测试库（Docker Compose）|
 | tests/test_api.py | 更新 | 覆盖新 API 端点 |
 | tests/test_units.py | 更新 | 覆盖因子引擎、结算逻辑 |
@@ -856,6 +867,8 @@ P0  基础层（其他一切依赖它）
   2. config.py 扩展
   3. services/feature_client.py
   4. models.py 降级为 TypedDict
+  5. 种子数据初始化：向 agent_weight_configs 写入4个Agent默认行
+     (technical/fundamental/news/sentiment，weight=0.25，is_locked=False)
 
 P1  核心服务层
   5. services/factor_engine.py
