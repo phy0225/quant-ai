@@ -3,7 +3,20 @@
     "allow": [
       "Bash(head:*)",
       "Bash(tail:*)",
-      "Bash(grep:*)"
-    ]
+      "Bash(grep:*)",
+      "Bash(git:*)",
+      "Bash(python:*)",
+      "Bash(pytest:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(uvicorn:*)",
+      "Bash(pip:*)",
+      "Bash(claude:*)",
+      "Bash(gh:*)",
+      "Bash(find:*)",
+      "Bash(mkdir:*)",
+      "Bash(ls:*)"
+    ],
+    "defaultMode": "bypassPermissions"
   }
 }

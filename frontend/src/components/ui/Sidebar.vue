@@ -3,11 +3,13 @@ import { computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSidebarStore } from '@/store/sidebar'
 import { useThemeStore } from '@/store/theme'
+import { useAnalysisStore } from '@/store/analysis'
 
 const route = useRoute()
 const router = useRouter()
 const sidebarStore = useSidebarStore()
 const themeStore = useThemeStore()
+const analysisStore = useAnalysisStore()
 
 interface NavItem {
   path: string
@@ -23,6 +25,7 @@ const navItems: NavItem[] = [
   { path: '/rules',      label: '规则',   icon: 'rules'      },  // 5. 风控规则
   { path: '/backtest',   label: '回测',   icon: 'backtest'   },  // 6. 策略回测
   { path: '/graph',      label: '图谱',   icon: 'graph'      },  // 7. 经验图谱
+  { path: '/weights',   label: '权重',   icon: 'weights'    },  // 8. Agent 权重管理
 ]
 
 const isActive = (path: string) => {
@@ -106,8 +109,15 @@ const sidebarWidth = computed(() =>
           <template v-else-if="item.icon === 'backtest'">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </template>
+          <template v-else-if="item.icon === 'weights'">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+          </template>
         </svg>
-        <span v-show="!sidebarStore.isCollapsed" class="whitespace-nowrap">{{ item.label }}</span>
+        <span v-show="!sidebarStore.isCollapsed" class="whitespace-nowrap flex-1">{{ item.label }}</span>
+        <span
+          v-if="item.path === '/analyze' && analysisStore.isRunning"
+          class="flex-shrink-0 w-2 h-2 rounded-full bg-[var(--brand-primary)] animate-pulse"
+        />
       </button>
     </nav>
 
