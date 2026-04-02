@@ -1,0 +1,85 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+      DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set image tags
+        run: |
+          echo "BACKEND_IMAGE=quantai-backend:${GITHUB_SHA}" >> "$GITHUB_ENV"
+          echo "FRONTEND_IMAGE=quantai-frontend:${GITHUB_SHA}" >> "$GITHUB_ENV"
+
+      - name: Build backend image
+        run: |
+          docker build \
+            -t "${BACKEND_IMAGE}" \
+            -f backend/Dockerfile \
+            .
+
+      - name: Build frontend image
+        run: |
+          docker build \
+            -t "${FRONTEND_IMAGE}" \
+            -f frontend/Dockerfile \
+            frontend
+
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "${DEPLOY_PORT:-22}" "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+
+      - name: Prepare remote deploy directory
+        run: |
+          ssh -p "${DEPLOY_PORT:-22}" "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "mkdir -p '${DEPLOY_PATH}'"
+
+      - name: Upload deployment files
+        run: |
+          scp -P "${DEPLOY_PORT:-22}" docker-compose.prod.yml \
+            "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/docker-compose.prod.yml"
+          scp -P "${DEPLOY_PORT:-22}" scripts/deploy_loaded_images.sh \
+            "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/deploy_loaded_images.sh"
+
+      - name: Upload backend image
+        run: |
+          docker save "${BACKEND_IMAGE}" | gzip | \
+          ssh -p "${DEPLOY_PORT:-22}" "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "gzip -dc | docker load"
+
+      - name: Upload frontend image
+        run: |
+          docker save "${FRONTEND_IMAGE}" | gzip | \
+          ssh -p "${DEPLOY_PORT:-22}" "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "gzip -dc | docker load"
+
+      - name: Deploy on server
+        run: |
+          ssh -p "${DEPLOY_PORT:-22}" "${DEPLOY_USER}@${DEPLOY_HOST}" "
+            chmod +x '${DEPLOY_PATH}/deploy_loaded_images.sh' && \
+            cd '${DEPLOY_PATH}' && \
+            BACKEND_IMAGE='${BACKEND_IMAGE}' FRONTEND_IMAGE='${FRONTEND_IMAGE}' \
+            ./deploy_loaded_images.sh '${DEPLOY_PATH}'
+          "

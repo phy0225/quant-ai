@@ -1,0 +1,194 @@
+name: Nightly AI Execute
+
+on:
+  workflow_dispatch:
+    inputs:
+      specs_filter:
+        description: '指定执行哪个 spec 目录（留空=全部，示例：specs/001-xxx）'
+        required: false
+        default: ''
+      base_branch:
+        description: 'PR 目标分支（默认 dev）'
+        required: false
+        default: 'dev'
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  # ── Job 1：扫描有哪些待执行的 spec ─────────────────────────
+  detect-specs:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.scan.outputs.matrix }}
+      has-specs: ${{ steps.scan.outputs.has-specs }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan specs directory
+        id: scan
+        run: |
+          FILTER="${{ github.event.inputs.specs_filter }}"
+
+          if [ -n "$FILTER" ]; then
+            # 指定了 specs_filter，只处理该目录
+            if [ -f "${FILTER}/tasks.md" ]; then
+              SPECS_JSON=$(echo "$FILTER" | jq -R '[.]')
+            else
+              echo "指定目录 ${FILTER}/tasks.md 不存在"
+              SPECS_JSON='[]'
+            fi
+          else
+            # 扫描所有 specs/*/tasks.md，排除 archive 子目录
+            SPECS_JSON=$(find specs -name "tasks.md" \
+              -not -path "*/archive/*" \
+              -not -path "*/docs/*" \
+              2>/dev/null \
+              | sed 's|/tasks.md||' \
+              | sort \
+              | jq -R -s 'split("\n") | map(select(length > 0))')
+          fi
+
+          COUNT=$(echo "$SPECS_JSON" | jq length)
+          echo "发现 ${COUNT} 个 spec: $SPECS_JSON"
+          echo "matrix={\"spec\":$SPECS_JSON}" >> $GITHUB_OUTPUT
+          echo "has-specs=$([ $COUNT -gt 0 ] && echo true || echo false)" >> $GITHUB_OUTPUT
+
+      - name: Skip if no specs found
+        if: steps.scan.outputs.has-specs == 'false'
+        run: |
+          echo "specs/ 目录下无待执行任务，跳过本次执行"
+
+  # ── Job 2：并行执行每个 spec（独立 runner + 独立 Claude 上下文）──
+  execute:
+    needs: detect-specs
+    if: needs.detect-specs.outputs.has-specs == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.detect-specs.outputs.matrix) }}
+      fail-fast: false    # 一个 spec 失败不停止其他 spec
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js（用于前端依赖）
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Python 3.11（用于后端测试）
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-test.txt
+
+      - name: Install Python dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt -r requirements-test.txt
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+
+      - name: Execute spec via overnight-execute skill
+        id: run
+        uses: anthropics/claude-code-action@beta
+        with:
+          prompt: "/overnight-execute ${{ matrix.spec }}"
+          dangerously_skip_permissions: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git for bot commit
+        if: steps.run.outcome == 'success'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create and push feature branch
+        if: steps.run.outcome == 'success'
+        env:
+          SPEC_PATH: ${{ matrix.spec }}
+        run: |
+          LABEL=$(basename "${SPEC_PATH}")
+          DATE=$(date +%Y%m%d)
+          BRANCH="feat/${LABEL}-${DATE}-${{ github.run_number }}"
+
+          git checkout -b "${BRANCH}"
+          git add -A
+          git diff --cached --quiet || git commit -m "feat: ${LABEL} (nightly ${DATE})"
+          git push origin "${BRANCH}"
+          echo "✅ 已推送分支 ${BRANCH}"
+
+      - name: Upload failure log as artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-log-${{ matrix.spec }}
+          path: |
+            /tmp/claude-*.log
+            /tmp/baseline.txt
+          retention-days: 7
+
+  # ── Job 3：汇总结果，开 PR 或 Issue ────────────────────────
+  consolidate:
+    needs: [detect-specs, execute]
+    if: always() && needs.detect-specs.outputs.has-specs == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0    # 需要获取所有分支信息
+
+      - name: Create PRs for succeeded specs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DATE=$(date +%Y%m%d)
+          PR_COUNT=0
+
+          for spec in $(find specs -name "tasks.md" \
+                        -not -path "*/archive/*" \
+                        2>/dev/null \
+                        | sed 's|/tasks.md||' | sort); do
+            LABEL=$(basename "$spec")
+            BRANCH="feat/${LABEL}-${DATE}-${{ github.run_number }}"
+
+            # 检查分支是否存在于远端
+            if git ls-remote --heads origin "${BRANCH}" | grep -q "${BRANCH}"; then
+              echo "为 ${BRANCH} 创建 PR..."
+
+              # 取 tasks.md 前 20 行作为 PR 描述
+              BODY=$(head -20 "${spec}/tasks.md" 2>/dev/null || echo "详见 ${spec}/tasks.md")
+
+              PR_BODY=$(printf '%s\n\n---\n🤖 由 Nightly AI Execute 自动生成' "${BODY}")
+              gh pr create \
+                --title "feat: ${LABEL} (nightly ${DATE})" \
+                --body "${PR_BODY}" \
+                --base "${{ github.event.inputs.base_branch || 'dev' }}" \
+                --head "${BRANCH}" \
+                --label "nightly,ai-generated" \
+                2>/dev/null && PR_COUNT=$((PR_COUNT + 1)) || true
+            fi
+          done
+
+          echo "共创建 ${PR_COUNT} 个 PR"
+
+      - name: Create failure Issue if any spec failed
+        if: needs.execute.result == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          ISSUE_BODY=$(printf '过夜自动执行出现失败。\n\n**Actions 日志**：%s\n\n**处理方式**：\n1. 查看上方日志，定位失败的 spec\n2. 修正 tasks.md 或代码后，手动触发：`gh workflow run nightly.yml`\n3. 或重新 Plan：`/superpowers:write-plan`\n\n> 此 Issue 由 GitHub Actions 自动创建' "${RUN_URL}")
+          gh issue create \
+            --title "🔴 Nightly Execute 失败：$(date +%Y-%m-%d)" \
+            --body "${ISSUE_BODY}" \
+            --label "nightly-failure,needs-attention"

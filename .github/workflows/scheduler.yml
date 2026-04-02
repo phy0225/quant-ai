@@ -1,0 +1,23 @@
+name: Nightly Scheduler
+
+on:
+  schedule:
+    - cron: '5 9 * * 1-5'   # UTC 09:05 = 北京时间 17:05，工作日触发
+  workflow_dispatch:          # 支持手动触发（调试/临时执行用）
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger nightly execute workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run nightly.yml \
+            --repo ${{ github.repository }} \
+            --field specs_filter="" \
+            --field base_branch="dev"
