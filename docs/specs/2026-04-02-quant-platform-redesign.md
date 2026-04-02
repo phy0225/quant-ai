@@ -241,7 +241,8 @@ CREATE TABLE agent_performance (
   actual_return       FLOAT,
   is_correct          BOOLEAN,
   factor_snapshot     JSON,
-  settled_at          DATETIME
+  settled_at          DATETIME,
+  UNIQUE KEY uk_signal (agent_signal_id)   -- 防止结算任务重试时重复写入
 );
 
 -- Agent 动态权重
@@ -385,6 +386,22 @@ PUT /api/v1/approvals/{id}/modify
   "reviewed_by": "trader01",
   "comment": "适当降低仓位"
 }
+```
+
+#### 特征平台代理（features）
+
+```
+GET  /api/v1/features/snapshot?symbols=600036,000001&date=2026-04-02
+→ { "600036": { factor_key: value, ... }, ... }
+  透传 feature_client.fetch_snapshot()；date 不传则用最近交易日
+
+GET  /api/v1/features/market?date=2026-04-02
+→ { market_return_5d, market_volatility_20d, ... }
+  透传 feature_client.fetch_market()
+
+GET  /api/v1/features/fields
+→ [{ factor_key, entity_type, description }]
+  返回特征平台支持的所有字段元信息（用于前端 Factors 页展示）
 ```
 
 #### 因子管理
@@ -689,6 +706,11 @@ async def run(settle_date: str):
 
 ```python
 async def run(trade_date: str):
+    # 收盘价来源策略（按优先级）：
+    #   1. 优先调 feature_client.fetch_snapshot(all_holdings, date, fields=["close_price"])
+    #      前提：特征平台支持当日 T 收盘后更新（需运维确认数据就绪时间 ≤ 16:00）
+    #   2. 如果特征平台数据未就绪（返回空或报错），fallback 到
+    #      AKShare stock_zh_a_spot_em 接口获取当日收盘价
     # 1. 读持仓 × 收盘价 → total_mv
     # 2. 更新 portfolio_holdings 实时字段（current_price / market_value / pnl_pct）
     # 3. 计算 NAV = prev_nav × (1 + daily_return)
@@ -731,6 +753,44 @@ async def run_discovery(research_direction: str, task_id: str):
     # 3. 计算历史 IC（基于60日历史数据）
     # 4. IC 通过阈值 → 写 factor_definitions（is_active=False，等人工确认）
     # 5. WebSocket broadcast: factor_discovery_completed
+```
+
+### services/backtest.py（重写）
+
+```python
+# 支持三种模式，前端模式选择器对应 backtest_mode 参数
+
+async def run_backtest(
+    symbols: list[str],
+    start_date: str,
+    end_date: str,
+    initial_capital: float,
+    benchmark: str,
+    commission_rate: float,
+    slippage: float,
+    rebalance_frequency: str,
+    backtest_mode: str,          # "signal_based" | "factor_based" | "simulation"
+    factor_snapshot_id: str | None = None,
+) -> dict:
+    ...
+
+# signal_based（历史信号回放，优先级最高）
+async def _run_signal_based(symbols, start_date, end_date, **kwargs) -> dict:
+    # 1. 查 agent_signals + approval_records（status=approved/auto_approved）
+    # 2. 按日期对齐：每个交易日取当日最近一条已审批信号的 final_direction
+    # 3. 信号 < 10 条时拒绝执行（返回错误，前端展示警告）
+    # 4. 模拟持仓变化 → 计算每日收益 → 输出与现有 nav_curve 结构相同的结果
+
+# factor_based（历史因子值驱动，信号不足时使用）
+async def _run_factor_based(symbols, start_date, end_date, **kwargs) -> dict:
+    # 1. 拉取历史 daily_factor_snapshots（date 范围内）
+    # 2. 用 composite_score 规则模拟每日持仓（score > 0.6 持有，否则空仓）
+    # 3. 因子快照不足30天时在结果中打 WARNING 标记
+    # 4. 计算 nav_curve / metrics
+
+# simulation（GBM 随机模拟，最终兜底，结果页显著标注"仅供参考"）
+def _run_simulation(symbols, start_date, end_date, **kwargs) -> dict:
+    # 保留现有 GBM 逻辑（random.seed(42)），结果追加 { "mode": "simulation", "warning": true }
 ```
 
 ### services/strategy_evolution.py（Layer 3 脚手架）
@@ -851,7 +911,12 @@ backend/requirements.txt：
   RestrictedPython==7.1
 
 backend/.env 新增：
-  DATABASE_URL=mysql+asyncmy://user:pass@host:3306/quant_ai
+  # asyncmy 裸连接参数（不兼容 SQLAlchemy mysql+asyncmy:// 格式）
+  DB_HOST=localhost
+  DB_PORT=3306
+  DB_USER=quant_user
+  DB_PASSWORD=
+  DB_NAME=quant_ai
   FEATURE_PLATFORM_MODE=api          # api | db
   FEATURE_PLATFORM_API_URL=
   FEATURE_PLATFORM_API_KEY=
@@ -871,29 +936,29 @@ P0  基础层（其他一切依赖它）
      (technical/fundamental/news/sentiment，weight=0.25，is_locked=False)
 
 P1  核心服务层
-  5. services/factor_engine.py
-  6. services/scheduler.py（接入 main.py lifespan）
-  7. services/nav_calculator.py
-  8. services/settlement.py
+  6. services/factor_engine.py
+  7. services/scheduler.py（接入 main.py lifespan）
+  8. services/nav_calculator.py
+  9. services/settlement.py
 
 P2  API 层
-  9. 现有路由迁移（decisions/approvals/portfolio/risk/rules）
-  10. 新路由（factors/strategy/candidate/settlement）
+  10. 现有路由迁移（decisions/approvals/portfolio/risk/rules）
+  11. 新路由（factors/features/strategy/candidate/settlement）
 
 P3  Agent 层
-  11. agents/pipeline.py 重写
-  12. 4 个 Agent 重构
+  12. agents/pipeline.py 重写
+  13. 4 个 Agent 重构
 
 P4  前端层
-  13. 新页面（Factors/Strategy/DecisionList）
-  14. 重构页面（Dashboard/Analyze/Portfolio/Approval/Decision）
+  14. 新页面（Factors/Strategy/DecisionList）
+  15. 重构页面（Dashboard/Analyze/Portfolio/Approval/Decision）
 
 P5  回测层
-  15. services/backtest.py 重写
+  16. services/backtest.py 重写
 
 P6  迭代层（脚手架，最后交付）
-  16. services/factor_discovery.py
-  17. services/strategy_evolution.py
+  17. services/factor_discovery.py
+  18. services/strategy_evolution.py
 ```
 
 ---
