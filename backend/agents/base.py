@@ -87,6 +87,31 @@ class BaseAgent:
     async def analyze(self, context: dict) -> dict:
         raise NotImplementedError
 
+    def _factor_hint(self, context: dict, symbol: str) -> tuple[str | None, dict | None]:
+        factor_context = context.get("factor_context") or {}
+        scored_stocks = factor_context.get("scored_stocks") or {}
+        if symbol not in scored_stocks:
+            return None, None
+
+        factor_score = float(scored_stocks.get(symbol, 0.5))
+        regime = factor_context.get("market_regime", "unknown")
+        factor_date = factor_context.get("factor_date")
+        factor_count = factor_context.get("factor_count", 0)
+        label = "positive" if factor_score >= 0.6 else "negative" if factor_score <= 0.4 else "neutral"
+
+        hint = (
+            f"因子上下文：score={factor_score:.2f}，market_regime={regime}，"
+            f"factor_date={factor_date}，effective_factors={factor_count}，bias={label}"
+        )
+        snapshot = {
+            "factor_score": round(factor_score, 4),
+            "market_regime": regime,
+            "factor_date": factor_date,
+            "factor_count": factor_count,
+            "factor_bias": label,
+        }
+        return hint, snapshot
+
     def _validate(self, output: dict, retry: int = 0):
         events = []
         d = output.get("direction")

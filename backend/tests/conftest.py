@@ -1,5 +1,5 @@
 """
-测试配置 — 内存 SQLite，每个测试函数独立数据库，互不干扰
+娴嬭瘯閰嶇疆 鈥?鍐呭瓨 SQLite锛屾瘡涓祴璇曞嚱鏁扮嫭绔嬫暟鎹簱锛屼簰涓嶅共鎵?
 """
 from __future__ import annotations
 import pytest
@@ -9,14 +9,21 @@ from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 
+@pytest.fixture
+def app_settings():
+    from config import settings
+    return settings
+
+
 @pytest_asyncio.fixture(scope="function")
 async def db_engine():
     from database import Base
+    import models  # noqa: F401 - ensure ORM tables are registered before create_all
     engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    # 所有测试都需要默认的 risk_configs 记录（UPDATE 语句依赖它存在）
+    # 鎵€鏈夋祴璇曢兘闇€瑕侀粯璁ょ殑 risk_configs 璁板綍锛圲PDATE 璇彞渚濊禆瀹冨瓨鍦級
     sf = async_sessionmaker(engine, expire_on_commit=False)
     async with sf() as db:
         from models import RiskConfig
@@ -40,7 +47,7 @@ async def db_engine():
 
 @pytest_asyncio.fixture(scope="function")
 async def client(db_engine):
-    """注入测试数据库的 HTTP 客户端"""
+    """Inject test database into HTTP client."""
     from database import get_db
     session_factory = async_sessionmaker(db_engine, expire_on_commit=False)
 
@@ -54,7 +61,7 @@ async def client(db_engine):
     from main import app
     app.dependency_overrides[get_db] = override_get_db
 
-    # 初始化默认数据
+    # 鍒濆鍖栭粯璁ゆ暟鎹?
     async with session_factory() as db:
         from models import RiskConfig
         from sqlalchemy import select
@@ -77,11 +84,11 @@ async def client(db_engine):
     app.dependency_overrides.clear()
 
 
-# ── 常用 fixture ──────────────────────────────────────────────────────────────
+# 鈹€鈹€ 甯哥敤 fixture 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 @pytest_asyncio.fixture
 async def pending_approval(client, db_engine):
-    """直接插入一条待审批记录（跳过 pipeline 耗时）"""
+    """Insert one pending approval record directly for API tests."""
     session_factory = async_sessionmaker(db_engine, expire_on_commit=False)
     decision_id = str(uuid.uuid4())
     approval_id = str(uuid.uuid4())
@@ -97,10 +104,10 @@ async def pending_approval(client, db_engine):
         from sqlalchemy import text
         await db.execute(text(
             "INSERT INTO decision_runs "
-            "(id,status,triggered_by,started_at,symbols,agent_signals,"
+            "(id,mode,status,triggered_by,started_at,symbols,candidate_symbols,agent_signals,"
             "hallucination_events,recommendations,final_direction,risk_level) "
-            "VALUES (:id,'completed','user','2026-01-01T10:00:00',"
-            "'[\"600519\"]','[]','[]',:recs,'buy','low')"
+            "VALUES (:id,'targeted','completed','user','2026-01-01T10:00:00',"
+            "'[\"600519\"]','[]','[]','[]',:recs,'buy','low')"
         ), {"id": decision_id, "recs": recs})
         await db.execute(text(
             "INSERT INTO approval_records "
@@ -121,9 +128,45 @@ async def approved_approval(client, pending_approval):
 
 
 @pytest_asyncio.fixture
+async def completed_rebalance_run(db_engine):
+    """插入一条已完成的 rebalance 决策，用于 orders 接口测试。"""
+    session_factory = async_sessionmaker(db_engine, expire_on_commit=False)
+    decision_id = str(uuid.uuid4())
+    recs = json.dumps([
+        {
+            "symbol": "600519",
+            "current_weight": 0.10,
+            "recommended_weight": 0.18,
+            "weight_delta": 0.08,
+            "confidence_score": 0.81,
+            "reasoning": "increase core holding",
+        },
+        {
+            "symbol": "CSI300",
+            "current_weight": 0.00,
+            "recommended_weight": 0.05,
+            "weight_delta": 0.05,
+            "confidence_score": 0.60,
+            "reasoning": "non-stock benchmark leg",
+        },
+    ])
+    async with session_factory() as db:
+        from sqlalchemy import text
+        await db.execute(text(
+            "INSERT INTO decision_runs "
+            "(id,mode,status,triggered_by,started_at,symbols,candidate_symbols,agent_signals,"
+            "hallucination_events,recommendations,final_direction,risk_level) "
+            "VALUES (:id,'rebalance','completed','user','2026-01-01T10:00:00',"
+            "'[\"600519\",\"CSI300\"]','[\"600519\",\"300750\"]','[]','[]',:recs,'buy','low')"
+        ), {"id": decision_id, "recs": recs})
+        await db.commit()
+    return decision_id
+
+
+@pytest_asyncio.fixture
 async def holding(client):
     r = await client.post("/api/v1/portfolio/", json={
-        "symbol": "600519", "symbol_name": "贵州茅台",
+        "symbol": "600519", "symbol_name": "璐靛窞鑼呭彴",
         "weight": 0.18, "cost_price": 1680.0, "quantity": 100,
     })
     return r.json()
@@ -132,8 +175,8 @@ async def holding(client):
 @pytest_asyncio.fixture
 async def rule(client):
     r = await client.post("/api/v1/rules/", json={
-        "name": "小幅调仓规则",
-        "description": "调仓 < 5% 自动批准",
+        "name": "灏忓箙璋冧粨瑙勫垯",
+        "description": "璋冧粨 < 5% 鑷姩鎵瑰噯",
         "logic_operator": "AND",
         "conditions": [{"field": "max_weight_delta", "operator": "lte", "value": 0.05}],
         "is_active": True,
@@ -144,7 +187,7 @@ async def rule(client):
 
 @pytest_asyncio.fixture
 async def graph_node(client, db_engine, approved_approval):
-    """审批通过后会自动生成图谱节点，返回节点信息"""
+    """Return one generated graph node after an approval."""
     session_factory = async_sessionmaker(db_engine, expire_on_commit=False)
     async with session_factory() as db:
         from sqlalchemy import select

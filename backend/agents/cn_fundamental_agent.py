@@ -30,6 +30,7 @@ class CNFundamentalAnalyst(BaseAgent):
         sym = (context.get("symbols") or ["000001"])[0]
         fin = await fetch_cn_fundamentals(sym)
         level, max_conf = _assess_data_level(fin)
+        factor_hint, factor_snapshot = self._factor_hint(context, sym)
 
         # 持仓上下文
         holding = get_holding(context, sym)
@@ -78,6 +79,8 @@ class CNFundamentalAnalyst(BaseAgent):
 只返回JSON。"""
 
         user_parts = [data_ctx]
+        if factor_hint:
+            user_parts.append(f"\n{factor_hint}")
         if holding:
             user_parts.append(f"\n{holding_ctx}")
         if holding_valuation_note:
@@ -104,7 +107,7 @@ class CNFundamentalAnalyst(BaseAgent):
                     "confidence": confidence, "reasoning_summary": reasoning,
                     "signal_weight": self.weight, "data_sources": ds,
                     "created_at": _now_iso(), "retry_count": attempt, "_events": [],
-                    "input_snapshot": {"data_level": level, "holding": holding,
+                    "input_snapshot": {"data_level": level, "holding": holding, "factor_context": factor_snapshot,
                         **{k: fin.get(k) for k in ["pe_ratio","pb_ratio","total_mv","revenue_yoy","net_profit_yoy","roe"] if fin.get(k)}},
                 }
             except Exception as e:

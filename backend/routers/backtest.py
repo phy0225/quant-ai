@@ -23,6 +23,7 @@ def _serialize(r: BacktestReport) -> dict:
         "end_date": r.end_date,
         "initial_capital": r.initial_capital,
         "benchmark": r.benchmark,
+        "backtest_mode": getattr(r, "backtest_mode", "signal_based"),
         "commission_rate": r.commission_rate,
         "slippage": r.slippage,
         "nav_curve": r.nav_curve,
@@ -58,6 +59,7 @@ async def _run_backtest_task(report_id: str, payload: BacktestRunRequest, db: As
             commission_rate=payload.commission_rate,
             slippage=payload.slippage,
             rebalance_frequency=payload.rebalance_frequency,
+            backtest_mode=payload.backtest_mode,
         )
         report.status = "completed"
         report.completed_at = datetime.utcnow()
@@ -80,6 +82,7 @@ async def run_backtest(payload: BacktestRunRequest, db: AsyncSession = Depends(g
         end_date=payload.end_date,
         initial_capital=payload.initial_capital,
         benchmark=payload.benchmark,
+        backtest_mode=payload.backtest_mode,
         commission_rate=payload.commission_rate,
         slippage=payload.slippage,
         rebalance_frequency=payload.rebalance_frequency,

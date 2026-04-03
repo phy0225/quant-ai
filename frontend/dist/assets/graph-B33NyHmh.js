@@ -1,1 +1,0 @@
-import{D as r}from"./index-BlUxqD--.js";const a={getStats(){return r.get("/api/v1/graph/stats")},listNodes(t){return r.get("/api/v1/graph/nodes",{params:t})},search(t){return r.post("/api/v1/graph/search",t)},getNode(t){return r.get(`/api/v1/graph/nodes/${t}`)}};export{a as g};

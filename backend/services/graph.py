@@ -4,7 +4,7 @@ import math, random
 from datetime import datetime
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from models import GraphNode, ApprovalRecord
+from models import DecisionRun, GraphNode, ApprovalRecord
 
 def _cosine_similarity(a: list, b: list) -> float:
     if not a or not b or len(a) != len(b):
@@ -20,7 +20,16 @@ def _make_embedding(symbols: list, direction: str | None) -> list:
     return [round(random.gauss(0, 1), 4) for _ in range(32)]
 
 async def add_graph_node(db: AsyncSession, approval: ApprovalRecord) -> GraphNode:
-    symbols = [r["symbol"] for r in (approval.recommendations or [])]
+    symbols = [r["symbol"] for r in (approval.recommendations or []) if isinstance(r, dict) and r.get("symbol")]
+    decision_result = await db.execute(select(DecisionRun).where(DecisionRun.id == approval.decision_run_id))
+    decision = decision_result.scalars().first()
+    mode = getattr(decision, "mode", "targeted")
+    market_regime = None
+    factor_snapshot = {
+        "source": "decision_recommendations",
+        "symbol_count": len(symbols),
+        "generated_at": (approval.reviewed_at or datetime.utcnow()).isoformat(),
+    }
     embedding = _make_embedding(symbols, None)
     node = GraphNode(
         approval_id=approval.id,
@@ -30,6 +39,11 @@ async def add_graph_node(db: AsyncSession, approval: ApprovalRecord) -> GraphNod
         outcome_sharpe=round(random.uniform(-0.5, 3.0), 2),
         symbols=symbols,
         embedding=embedding,
+        metadata_={
+            "mode": mode,
+            "factor_snapshot": factor_snapshot,
+            "market_regime": market_regime,
+        },
     )
     db.add(node)
     await db.commit()

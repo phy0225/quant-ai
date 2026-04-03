@@ -1,4 +1,4 @@
-export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'auto_approved'
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'auto_approved' | 'modified'
 
 export interface SimilarCase {
   node_id: string

@@ -1,5 +1,18 @@
-import apiClient from './client'
+﻿import apiClient from './client'
 import type { AutoApprovalRule } from '@/types/risk'
+
+export interface AgentWeightRow {
+  agent_type: string
+  weight: number
+  accuracy_30d: number | null
+  accuracy_60d: number | null
+  is_locked: boolean
+  last_updated?: string | null
+}
+
+export interface AgentWeightListResponse {
+  items: AgentWeightRow[]
+}
 
 export const rulesApi = {
   list(params?: { active_only?: boolean }): Promise<AutoApprovalRule[]> {
@@ -20,5 +33,9 @@ export const rulesApi = {
 
   toggle(id: string): Promise<AutoApprovalRule> {
     return apiClient.post(`/api/v1/rules/${id}/toggle`)
+  },
+
+  getAgentWeights(): Promise<AgentWeightListResponse> {
+    return apiClient.get('/api/v1/rules/agent-weights')
   },
 }

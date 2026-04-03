@@ -157,19 +157,19 @@ class BaseDataProvider:
     """
     provider_name: str = "base"
 
-    def get_snapshot(self, symbol: str) -> StockSnapshot | None:
+    async def get_snapshot(self, symbol: str) -> StockSnapshot | None:
         raise NotImplementedError
 
-    def get_fundamentals(self, symbol: str) -> FundamentalsData | None:
+    async def get_fundamentals(self, symbol: str) -> FundamentalsData | None:
         raise NotImplementedError
 
-    def get_news(self, symbol: str, limit: int = 8) -> list[NewsItem]:
+    async def get_news(self, symbol: str, limit: int = 8) -> list[NewsItem]:
         raise NotImplementedError
 
-    def get_sentiment(self, symbol: str, rsi: float, vol_ratio: float) -> SentimentData:
+    async def get_sentiment(self, symbol: str, rsi: float, vol_ratio: float) -> SentimentData:
         raise NotImplementedError
 
-    def get_market_telegraph(self) -> list[dict]:
+    async def get_market_telegraph(self) -> list[dict]:
         """宏观快讯（可选实现，不强制）"""
         return []
 
@@ -179,34 +179,34 @@ class BaseDataProvider:
 class AKShareProvider(BaseDataProvider):
     provider_name = "akshare"
 
-    def get_snapshot(self, symbol: str) -> StockSnapshot | None:
+    async def get_snapshot(self, symbol: str) -> StockSnapshot | None:
         from services.cn_market_data import fetch_cn_snapshot
-        data = fetch_cn_snapshot(symbol)
+        data = await fetch_cn_snapshot(symbol)
         if not data:
             return None
         data["data_source"] = "AKShare"
         return StockSnapshot(data)
 
-    def get_fundamentals(self, symbol: str) -> FundamentalsData | None:
+    async def get_fundamentals(self, symbol: str) -> FundamentalsData | None:
         from services.cn_fundamental_data import fetch_cn_fundamentals
-        data = fetch_cn_fundamentals(symbol)
+        data = await fetch_cn_fundamentals(symbol)
         if not data:
             return None
         data["data_source"] = "AKShare"
         return FundamentalsData(data)
 
-    def get_news(self, symbol: str, limit: int = 8) -> list[NewsItem]:
+    async def get_news(self, symbol: str, limit: int = 8) -> list[NewsItem]:
         from services.cn_news_data import fetch_cn_news
-        raw = fetch_cn_news(symbol, limit)
+        raw = await fetch_cn_news(symbol, limit)
         return [NewsItem(n) for n in raw]
 
-    def get_sentiment(self, symbol: str, rsi: float, vol_ratio: float) -> SentimentData:
+    async def get_sentiment(self, symbol: str, rsi: float, vol_ratio: float) -> SentimentData:
         from services.cn_sentiment_data import (
             fetch_stock_comment, fetch_north_flow, fetch_market_breadth
         )
-        comment = fetch_stock_comment(symbol)
-        north   = fetch_north_flow()
-        breadth = fetch_market_breadth()
+        comment = await fetch_stock_comment(symbol)
+        north   = await fetch_north_flow()
+        breadth = await fetch_market_breadth()
         return SentimentData({
             "score":             comment.get("score") if comment else None,
             "north_flow":        north.get("total_flow") if north else None,
@@ -216,9 +216,9 @@ class AKShareProvider(BaseDataProvider):
             "data_source":       "AKShare（东财评分+北向资金+涨跌停）",
         })
 
-    def get_market_telegraph(self) -> list[dict]:
+    async def get_market_telegraph(self) -> list[dict]:
         from services.cn_news_data import fetch_cls_telegraph
-        return fetch_cls_telegraph()
+        return await fetch_cls_telegraph()
 
 
 # ─── Tushare Provider（以后需要时填充实现）───────────────────────────
@@ -241,7 +241,7 @@ class TushareProvider(BaseDataProvider):
         ts.set_token(token)
         self._pro = ts.pro_api()
 
-    def get_snapshot(self, symbol: str) -> StockSnapshot | None:
+    async def get_snapshot(self, symbol: str) -> StockSnapshot | None:
         """
         用 Tushare 实现行情快照
         Tushare 股票代码格式：000001.SZ / 600519.SH
@@ -280,7 +280,7 @@ class TushareProvider(BaseDataProvider):
             print(f"[Tushare] get_snapshot failed for {symbol}: {e}")
             return None
 
-    def get_fundamentals(self, symbol: str) -> FundamentalsData | None:
+    async def get_fundamentals(self, symbol: str) -> FundamentalsData | None:
         """
         用 Tushare 实现基本面数据
         参考接口：pro.daily_basic(), pro.income(), pro.balancesheet()
@@ -304,13 +304,13 @@ class TushareProvider(BaseDataProvider):
             print(f"[Tushare] get_fundamentals failed: {e}")
             return None
 
-    def get_news(self, symbol: str, limit: int = 8) -> list[NewsItem]:
+    async def get_news(self, symbol: str, limit: int = 8) -> list[NewsItem]:
         """Tushare 新闻接口（需积分）"""
         # TODO: 实现 self._pro.news() 调用
         # 参考：https://tushare.pro/document/2?doc_id=198
         return []
 
-    def get_sentiment(self, symbol: str, rsi: float, vol_ratio: float) -> SentimentData:
+    async def get_sentiment(self, symbol: str, rsi: float, vol_ratio: float) -> SentimentData:
         """Tushare 暂无专门情绪接口，返回基础字段"""
         return SentimentData({
             "score": None,
@@ -328,7 +328,7 @@ class MockProvider(BaseDataProvider):
     """返回随机但合理的模拟数据，用于开发和单元测试"""
     provider_name = "mock"
 
-    def get_snapshot(self, symbol: str) -> StockSnapshot | None:
+    async def get_snapshot(self, symbol: str) -> StockSnapshot | None:
         import random
         price = random.uniform(10, 200)
         return StockSnapshot({
@@ -352,7 +352,7 @@ class MockProvider(BaseDataProvider):
             "fetched_at": datetime.now().isoformat(),
         })
 
-    def get_fundamentals(self, symbol: str) -> FundamentalsData | None:
+    async def get_fundamentals(self, symbol: str) -> FundamentalsData | None:
         import random
         return FundamentalsData({
             "symbol": symbol, "stock_name": f"模拟股票{symbol}",
@@ -367,14 +367,14 @@ class MockProvider(BaseDataProvider):
             "report_period": "2024-Q3", "data_source": "Mock",
         })
 
-    def get_news(self, symbol: str, limit: int = 8) -> list[NewsItem]:
+    async def get_news(self, symbol: str, limit: int = 8) -> list[NewsItem]:
         return [NewsItem({
             "title": f"{symbol} 模拟新闻标题 {i+1}",
             "source": "模拟数据", "published": datetime.now().strftime("%Y-%m-%d"),
             "content": "这是模拟新闻内容，实际接入数据源后会显示真实新闻。",
         }) for i in range(3)]
 
-    def get_sentiment(self, symbol: str, rsi: float, vol_ratio: float) -> SentimentData:
+    async def get_sentiment(self, symbol: str, rsi: float, vol_ratio: float) -> SentimentData:
         import random
         return SentimentData({
             "score": round(random.uniform(40, 80), 1),
@@ -419,17 +419,17 @@ def get_provider() -> BaseDataProvider:
 
 # ─── 对外暴露的统一接口（Agent 只调用这些）──────────────────────────
 
-def get_snapshot(symbol: str) -> StockSnapshot | None:
-    return get_provider().get_snapshot(symbol)
+async def get_snapshot(symbol: str) -> StockSnapshot | None:
+    return await get_provider().get_snapshot(symbol)
 
-def get_fundamentals(symbol: str) -> FundamentalsData | None:
-    return get_provider().get_fundamentals(symbol)
+async def get_fundamentals(symbol: str) -> FundamentalsData | None:
+    return await get_provider().get_fundamentals(symbol)
 
-def get_news(symbol: str, limit: int = 8) -> list[NewsItem]:
-    return get_provider().get_news(symbol, limit)
+async def get_news(symbol: str, limit: int = 8) -> list[NewsItem]:
+    return await get_provider().get_news(symbol, limit)
 
-def get_sentiment(symbol: str, rsi: float = 50, vol_ratio: float = 1.0) -> SentimentData:
-    return get_provider().get_sentiment(symbol, rsi, vol_ratio)
+async def get_sentiment(symbol: str, rsi: float = 50, vol_ratio: float = 1.0) -> SentimentData:
+    return await get_provider().get_sentiment(symbol, rsi, vol_ratio)
 
-def get_market_telegraph() -> list[dict]:
-    return get_provider().get_market_telegraph()
+async def get_market_telegraph() -> list[dict]:
+    return await get_provider().get_market_telegraph()

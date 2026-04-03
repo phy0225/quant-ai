@@ -48,3 +48,14 @@ async def _seed_defaults():
                 emergency_stop_active=False,
             ))
             await db.commit()
+
+
+def mysql_connection_settings() -> dict[str, object]:
+    return {
+        "host": settings.DB_HOST,
+        "port": settings.DB_PORT,
+        "user": settings.DB_USER,
+        "password": settings.DB_PASSWORD,
+        "database": settings.DB_NAME,
+        "dsn": settings.mysql_dsn,
+    }

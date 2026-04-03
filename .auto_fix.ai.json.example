@@ -1,0 +1,17 @@
+{
+  "provider": "codex",
+  "model": "gpt-5.4",
+  "timeout": 1800,
+  "providers": {
+    "codex": {
+      "check_cmd": "codex --version",
+      "cmd": "codex exec --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check --cd \"{root}\" {model_arg} -",
+      "install_hint": "pipx install codex-cli"
+    },
+    "claude": {
+      "check_cmd": "claude --version",
+      "cmd": "claude --dangerously-skip-permissions --print {model_arg} -",
+      "install_hint": "npm install -g @anthropic-ai/claude-code"
+    }
+  }
+}

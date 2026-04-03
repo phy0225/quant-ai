@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import String, Integer, Float, Boolean, DateTime, Text, ForeignKey, JSON
+from sqlalchemy import String, Integer, Float, Boolean, DateTime, Text, ForeignKey, JSON, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from database import Base
 
@@ -19,15 +19,17 @@ class DecisionRun(Base):
     __tablename__ = "decision_runs"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=gen_id)
-    status: Mapped[str] = mapped_column(String(20), default="running")   # running|completed|failed
-    triggered_by: Mapped[str] = mapped_column(String(100), default="user")
+    mode: Mapped[str] = mapped_column(String(20), default="targeted", server_default="targeted")
+    status: Mapped[str] = mapped_column(String(20), default="running", server_default="running")   # running|completed|failed
+    triggered_by: Mapped[str] = mapped_column(String(100), default="user", server_default="user")
     started_at: Mapped[datetime] = mapped_column(DateTime, default=now)
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    symbols: Mapped[list] = mapped_column(JSON, default=list)
+    symbols: Mapped[list] = mapped_column(JSON, default=list, server_default=text("'[]'"))
+    candidate_symbols: Mapped[list] = mapped_column(JSON, default=list, server_default=text("'[]'"))
     current_portfolio: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
-    agent_signals: Mapped[list] = mapped_column(JSON, default=list)
-    hallucination_events: Mapped[list] = mapped_column(JSON, default=list)
-    recommendations: Mapped[list] = mapped_column(JSON, default=list)
+    agent_signals: Mapped[list] = mapped_column(JSON, default=list, server_default=text("'[]'"))
+    hallucination_events: Mapped[list] = mapped_column(JSON, default=list, server_default=text("'[]'"))
+    recommendations: Mapped[list] = mapped_column(JSON, default=list, server_default=text("'[]'"))
     final_direction: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
     risk_level: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
     error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
@@ -66,6 +68,7 @@ class BacktestReport(Base):
     commission_rate: Mapped[float] = mapped_column(Float, default=0.003)
     slippage: Mapped[float] = mapped_column(Float, default=0.001)
     rebalance_frequency: Mapped[str] = mapped_column(String(10), default="weekly")
+    backtest_mode: Mapped[str] = mapped_column(String(20), default="signal_based")
     nav_curve: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
     monthly_returns: Mapped[Optional[list]] = mapped_column(JSON, nullable=True)
     total_return: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
@@ -83,7 +86,7 @@ class BacktestReport(Base):
 # ─── Risk ─────────────────────────────────────────────────────────────────────
 
 class RiskConfig(Base):
-    __tablename__ = "risk_config"
+    __tablename__ = "risk_configs"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
     max_position_weight: Mapped[float] = mapped_column(Float, default=0.20)
@@ -126,6 +129,35 @@ class AutoApprovalRule(Base):
     last_triggered_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=now)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=now, onupdate=now)
+
+
+class AgentPerformance(Base):
+    __tablename__ = "agent_performance"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=gen_id)
+    decision_run_id: Mapped[str] = mapped_column(String(36), index=True)
+    agent_signal_id: Mapped[str] = mapped_column(String(36), unique=True)
+    agent_type: Mapped[str] = mapped_column(String(50), index=True)
+    symbol: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    predicted_direction: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
+    predicted_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    settlement_date: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
+    actual_return: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    is_correct: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
+    factor_snapshot: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    settled_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+
+class AgentWeightConfig(Base):
+    __tablename__ = "agent_weight_configs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=gen_id)
+    agent_type: Mapped[str] = mapped_column(String(50), unique=True, index=True)
+    weight: Mapped[float] = mapped_column(Float, default=0.25)
+    accuracy_30d: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    accuracy_60d: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    is_locked: Mapped[bool] = mapped_column(Boolean, default=False)
+    last_updated: Mapped[datetime] = mapped_column(DateTime, default=now)
 
 # ─── Graph ────────────────────────────────────────────────────────────────────
 

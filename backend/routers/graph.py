@@ -9,6 +9,7 @@ from services.graph import get_graph_stats, get_similar_cases
 router = APIRouter(prefix="/api/v1/graph", tags=["graph"])
 
 def _serialize_node(n: GraphNode) -> dict:
+    metadata = n.metadata_ or {}
     return {
         "node_id": n.node_id,
         "timestamp": n.timestamp.isoformat(),
@@ -16,6 +17,9 @@ def _serialize_node(n: GraphNode) -> dict:
         "outcome_return": n.outcome_return,
         "outcome_sharpe": n.outcome_sharpe,
         "symbols": n.symbols or [],
+        "mode": metadata.get("mode"),
+        "factor_snapshot": metadata.get("factor_snapshot"),
+        "market_regime": metadata.get("market_regime"),
     }
 
 @router.get("/stats")
@@ -37,7 +41,8 @@ async def list_nodes(
     from sqlalchemy import func
     total_result = await db.execute(select(func.count(GraphNode.node_id)))
     total = total_result.scalar() or 0
-    return {"nodes": [_serialize_node(n) for n in nodes], "total": total}
+    serialized = [_serialize_node(n) for n in nodes]
+    return {"nodes": serialized, "items": serialized, "total": total}
 
 @router.get("/nodes/{node_id}")
 async def get_node(node_id: str, db: AsyncSession = Depends(get_db)):
