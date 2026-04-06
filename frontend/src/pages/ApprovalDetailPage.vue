@@ -15,6 +15,14 @@ const approval = ref<ApprovalRecord | null>(null)
 const reviewer = ref('risk-admin')
 const modifyMap = ref<Record<string, number>>({})
 
+const statusLabelMap: Record<string, string> = {
+  pending: '待审批',
+  approved: '已通过',
+  rejected: '已拒绝',
+  modified: '已修改',
+  auto_approved: '自动通过',
+}
+
 const stockRows = computed(() =>
   (approval.value?.recommendations || []).filter((r) => /^\d{6}$/.test(r.symbol))
 )
@@ -66,23 +74,23 @@ onMounted(load)
       <p v-if="loading" class="text-sm text-[var(--text-tertiary)]">加载中...</p>
       <template v-else-if="approval">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-          <div>approval_id: <span class="font-mono text-xs">{{ approval.id }}</span></div>
-          <div>status: {{ approval.status }}</div>
-          <div>decision_run: <span class="font-mono text-xs">{{ approval.decision_run_id }}</span></div>
+          <div>审批编号: <span class="font-mono text-xs">{{ approval.id }}</span></div>
+          <div>审批状态: {{ statusLabelMap[approval.status] || approval.status }}</div>
+          <div>决策任务: <span class="font-mono text-xs">{{ approval.decision_run_id }}</span></div>
         </div>
 
         <div>
-          <label class="block text-xs text-[var(--text-secondary)] mb-1">reviewer</label>
+          <label class="block text-xs text-[var(--text-secondary)] mb-1">审批人</label>
           <input v-model="reviewer" />
         </div>
 
         <table class="w-full text-sm">
           <thead>
             <tr class="text-left border-b border-[var(--border-subtle)]">
-              <th class="py-2">symbol</th>
-              <th class="py-2">current</th>
-              <th class="py-2">target</th>
-              <th class="py-2">modify</th>
+              <th class="py-2">标的</th>
+              <th class="py-2">当前权重</th>
+              <th class="py-2">建议权重</th>
+              <th class="py-2">修改权重</th>
             </tr>
           </thead>
           <tbody>
@@ -106,4 +114,3 @@ onMounted(load)
     </div>
   </div>
 </template>
-

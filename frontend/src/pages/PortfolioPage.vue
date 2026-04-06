@@ -90,10 +90,10 @@ onMounted(refreshAll)
       <table v-else class="w-full text-sm">
         <thead>
           <tr class="text-left border-b border-[var(--border-subtle)]">
-            <th class="py-2">symbol</th>
-            <th class="py-2">name</th>
-            <th class="py-2">weight</th>
-            <th class="py-2">pnl</th>
+            <th class="py-2">代码</th>
+            <th class="py-2">名称</th>
+            <th class="py-2">权重</th>
+            <th class="py-2">浮盈</th>
           </tr>
         </thead>
         <tbody>
@@ -121,17 +121,17 @@ onMounted(refreshAll)
       <table class="w-full text-sm">
         <thead>
           <tr class="text-left border-b border-[var(--border-subtle)]">
-            <th class="py-2">symbol</th>
-            <th class="py-2">action</th>
-            <th class="py-2">current</th>
-            <th class="py-2">target</th>
-            <th class="py-2">delta</th>
+            <th class="py-2">代码</th>
+            <th class="py-2">动作</th>
+            <th class="py-2">当前权重</th>
+            <th class="py-2">目标权重</th>
+            <th class="py-2">变化幅度</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="order in orders" :key="order.symbol" class="border-b border-[var(--border-subtle)]">
             <td class="py-2">{{ order.symbol }}</td>
-            <td class="py-2">{{ order.action }}</td>
+            <td class="py-2">{{ order.action === 'buy' ? '买入' : order.action === 'sell' ? '卖出' : '持有' }}</td>
             <td class="py-2">{{ (order.current_weight * 100).toFixed(1) }}%</td>
             <td class="py-2">{{ (order.target_weight * 100).toFixed(1) }}%</td>
             <td class="py-2">{{ (order.weight_delta * 100).toFixed(1) }}%</td>
@@ -144,4 +144,3 @@ onMounted(refreshAll)
     </div>
   </div>
 </template>
-

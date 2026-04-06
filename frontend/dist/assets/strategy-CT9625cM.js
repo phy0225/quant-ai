@@ -1,0 +1,1 @@
+import{y as t}from"./index-Bi_--mi5.js";const s={listVersions(){return t.get("/api/v1/strategy/versions")},listExperiments(e=20){return t.get("/api/v1/strategy/experiments",{params:{limit:e}})},createExperiment(e){return t.post("/api/v1/strategy/experiment",e)},getExperiment(e){return t.get(`/api/v1/strategy/experiment/${e}`)}};export{s};

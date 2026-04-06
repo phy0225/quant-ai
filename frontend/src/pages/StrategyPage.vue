@@ -23,7 +23,7 @@ async function loadAll() {
       baseVersionId.value = versions.value[0].version_id
     }
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || err?.message || 'Failed to load strategy data.'
+    error.value = err?.response?.data?.detail || err?.message || '加载策略数据失败。'
   } finally {
     loading.value = false
   }
@@ -41,7 +41,7 @@ async function createExperiment() {
     hypothesis.value = ''
     await loadAll()
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || err?.message || 'Failed to create experiment.'
+    error.value = err?.response?.data?.detail || err?.message || '创建实验失败。'
   } finally {
     creating.value = false
   }
@@ -52,21 +52,21 @@ onMounted(loadAll)
 
 <template>
   <div class="p-6 max-w-[1280px] mx-auto space-y-5">
-    <h1 class="text-xl font-bold text-[var(--text-primary)]">Strategy</h1>
+    <h1 class="text-xl font-bold text-[var(--text-primary)]">策略开发</h1>
 
     <div class="card p-4 space-y-3">
-      <h2 class="font-semibold">Layer 3 Manual Evolution Experiment</h2>
+      <h2 class="font-semibold">三层人工演化实验</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
-          <label class="block text-xs text-[var(--text-secondary)] mb-1">Base Version</label>
+          <label class="block text-xs text-[var(--text-secondary)] mb-1">基础版本</label>
           <select v-model="baseVersionId">
             <option v-for="v in versions" :key="v.version_id" :value="v.version_id">{{ v.version_id }} - {{ v.name }}</option>
           </select>
         </div>
       </div>
       <div>
-        <label class="block text-xs text-[var(--text-secondary)] mb-1">Hypothesis</label>
-        <textarea v-model="hypothesis" rows="4" placeholder="Describe the strategy change hypothesis." />
+        <label class="block text-xs text-[var(--text-secondary)] mb-1">研究假设</label>
+        <textarea v-model="hypothesis" rows="4" placeholder="描述本次策略变更的研究假设。" />
       </div>
       <div class="flex items-center gap-3">
         <button
@@ -74,23 +74,23 @@ onMounted(loadAll)
           :disabled="creating || !hypothesis.trim()"
           @click="createExperiment"
         >
-          {{ creating ? 'Submitting...' : 'Create Experiment' }}
+          {{ creating ? '提交中...' : '创建实验' }}
         </button>
-        <button class="px-3 py-2 rounded border text-sm" @click="loadAll">Refresh</button>
+        <button class="px-3 py-2 rounded border text-sm" @click="loadAll">刷新</button>
       </div>
       <p v-if="error" class="text-sm text-[var(--negative)]">{{ error }}</p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
       <div class="card p-4">
-        <h2 class="font-semibold mb-2">Versions</h2>
-        <p v-if="loading" class="text-sm text-[var(--text-tertiary)]">Loading...</p>
+        <h2 class="font-semibold mb-2">版本列表</h2>
+        <p v-if="loading" class="text-sm text-[var(--text-tertiary)]">加载中...</p>
         <table v-else class="w-full text-sm">
           <thead>
             <tr class="text-left border-b border-[var(--border-subtle)]">
-              <th class="py-2">version_id</th>
-              <th class="py-2">parent</th>
-              <th class="py-2">name</th>
+              <th class="py-2">版本号</th>
+              <th class="py-2">父版本</th>
+              <th class="py-2">名称</th>
             </tr>
           </thead>
           <tbody>
@@ -104,13 +104,13 @@ onMounted(loadAll)
       </div>
 
       <div class="card p-4">
-        <h2 class="font-semibold mb-2">Experiments</h2>
+        <h2 class="font-semibold mb-2">实验记录</h2>
         <table class="w-full text-sm">
           <thead>
             <tr class="text-left border-b border-[var(--border-subtle)]">
-              <th class="py-2">experiment_id</th>
-              <th class="py-2">status</th>
-              <th class="py-2">new_version</th>
+              <th class="py-2">实验编号</th>
+              <th class="py-2">状态</th>
+              <th class="py-2">新版本</th>
             </tr>
           </thead>
           <tbody>
@@ -120,7 +120,7 @@ onMounted(loadAll)
               <td class="py-2">{{ e.new_version_id || '--' }}</td>
             </tr>
             <tr v-if="!experiments.length">
-              <td class="py-3 text-[var(--text-tertiary)]" colspan="3">No experiments yet.</td>
+              <td class="py-3 text-[var(--text-tertiary)]" colspan="3">暂无实验记录。</td>
             </tr>
           </tbody>
         </table>

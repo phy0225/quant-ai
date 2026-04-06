@@ -1,0 +1,1 @@
+import{y as p}from"./index-Bi_--mi5.js";const o={list(a){return p.get("/api/v1/approvals/",{params:a})},get(a){return p.get(`/api/v1/approvals/${a}`)},processAction(a,t){return p.post(`/api/v1/approvals/${a}/action`,t)},modifyWeights(a,t){return p.put(`/api/v1/approvals/${a}/modify`,t)},batchAction(a){return p.post("/api/v1/approvals/batch-action",a)}};export{o as a};

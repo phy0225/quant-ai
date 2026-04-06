@@ -248,10 +248,31 @@ class GraphNodeOut(BaseModel):
     outcome_return: float
     outcome_sharpe: float
     symbols: List[str]
+    mode: Optional[str] = None
+    factor_snapshot: Optional[dict] = None
+    market_regime: Optional[str] = None
+    node_type: Optional[str] = None
+    display_label: Optional[str] = None
+    entity_key: Optional[str] = None
 
 class GraphNodesResponse(BaseModel):
     nodes: List[GraphNodeOut]
     total: int
+
+class GraphEdgeOut(BaseModel):
+    edge_id: str
+    source: str
+    target: str
+    relation_type: str
+    strength: float
+    shared_symbols: List[str] = []
+    shared_market_regime: Optional[str] = None
+
+class GraphNetworkResponse(BaseModel):
+    nodes: List[GraphNodeOut]
+    edges: List[GraphEdgeOut]
+    total_nodes: int
+    total_edges: int
 
 class SimilarityTrendPoint(BaseModel):
     timestamp: str

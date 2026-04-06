@@ -152,17 +152,17 @@ onMounted(() => {
       </div>
     </Transition>
 
-    <h1 class="text-xl font-bold text-[var(--text-primary)] mb-6">Agent 权重管理</h1>
+    <h1 class="text-xl font-bold text-[var(--text-primary)] mb-6">智能体权重管理</h1>
 
     <!-- RL 训练进度卡片 -->
     <div v-if="rlStatus" class="card p-4 mb-6">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="text-sm font-semibold text-[var(--text-primary)]">RL 训练进度</h3>
+        <h3 class="text-sm font-semibold text-[var(--text-primary)]">强化学习训练进度</h3>
         <span
           class="px-2 py-0.5 rounded text-[11px] font-medium"
           :class="rlStatus.rl_ready ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'"
         >
-          {{ rlStatus.rl_ready ? 'RL 已就绪' : `需要 ${rlStatus.min_settled_for_rl} 个结算节点` }}
+          {{ rlStatus.rl_ready ? '训练已就绪' : `需要 ${rlStatus.min_settled_for_rl} 个结算节点` }}
         </span>
       </div>
       <div class="mb-2">
@@ -180,7 +180,7 @@ onMounted(() => {
       </div>
       <div class="grid grid-cols-2 gap-4 mt-3 text-[12px] text-[var(--text-secondary)]">
         <div>
-          <span class="text-[var(--text-tertiary)]">上次 RL 训练: </span>
+          <span class="text-[var(--text-tertiary)]">上次训练: </span>
           {{ formatTime(rlStatus.last_trained_at) }}
         </div>
         <div>
@@ -193,7 +193,7 @@ onMounted(() => {
     <!-- 权重配置表格 -->
     <div class="card p-4 mb-6">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-sm font-semibold text-[var(--text-primary)]">Agent 权重配置</h3>
+        <h3 class="text-sm font-semibold text-[var(--text-primary)]">智能体权重配置</h3>
         <span class="text-[12px]" :class="Math.abs(totalWeight - 1.0) > 0.01 ? 'text-red-500 font-medium' : 'text-[var(--text-tertiary)]'">
           权重合计: {{ (totalWeight * 100).toFixed(1) }}%
         </span>

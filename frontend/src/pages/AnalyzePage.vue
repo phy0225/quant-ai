@@ -20,6 +20,17 @@ const error = ref('')
 const orders = ref<RebalanceOrder[]>([])
 let timer: ReturnType<typeof setTimeout> | null = null
 
+const statusLabelMap: Record<string, string> = {
+  running: '运行中',
+  completed: '已完成',
+  failed: '失败',
+}
+
+const modeLabelMap: Record<string, string> = {
+  targeted: '定向分析',
+  rebalance: '调仓分析',
+}
+
 function parseSymbols(raw: string): string[] {
   return raw
     .split(',')
@@ -105,7 +116,7 @@ async function handleTrigger() {
       await loadOrders()
     }
   } catch (e: any) {
-    error.value = e?.response?.data?.detail || e?.message || 'Trigger failed'
+    error.value = e?.response?.data?.detail || e?.message || '触发分析失败。'
   } finally {
     loading.value = false
   }
@@ -133,7 +144,12 @@ onUnmounted(clearTimer)
 
 <template>
   <div class="p-6 max-w-[1100px] mx-auto space-y-5">
-    <h1 class="text-xl font-bold text-[var(--text-primary)]">Analyze</h1>
+    <div class="space-y-2">
+      <h1 class="text-xl font-bold text-[var(--text-primary)]">决策触发</h1>
+      <p class="text-sm text-[var(--text-secondary)]">
+        这里用于发起正式分析任务，会生成决策运行记录，并可继续进入决策详情与审批流程。
+      </p>
+    </div>
 
     <div class="card p-4 space-y-4">
       <div class="flex gap-2">
@@ -142,29 +158,29 @@ onUnmounted(clearTimer)
           :class="mode === 'targeted' ? 'bg-[var(--brand-primary)] text-white' : 'bg-[var(--bg-elevated)]'"
           @click="mode = 'targeted'"
         >
-          targeted
+          定向分析
         </button>
         <button
           class="px-3 py-1.5 rounded text-sm"
           :class="mode === 'rebalance' ? 'bg-[var(--brand-primary)] text-white' : 'bg-[var(--bg-elevated)]'"
           @click="mode = 'rebalance'"
         >
-          rebalance
+          调仓分析
         </button>
       </div>
 
       <div v-if="mode === 'targeted'" class="space-y-2">
-        <label class="text-xs text-[var(--text-secondary)] block">symbols (comma separated)</label>
+        <label class="text-xs text-[var(--text-secondary)] block">标的代码（逗号分隔）</label>
         <input v-model="symbolsInput" placeholder="600519,300750" />
       </div>
 
       <template v-else>
         <div class="space-y-2">
-          <label class="text-xs text-[var(--text-secondary)] block">candidate_symbols</label>
+          <label class="text-xs text-[var(--text-secondary)] block">候选标的</label>
           <input v-model="candidateInput" placeholder="600519,300750,002594" />
         </div>
         <div class="space-y-2">
-          <label class="text-xs text-[var(--text-secondary)] block">current_portfolio (symbol:weight)</label>
+          <label class="text-xs text-[var(--text-secondary)] block">当前持仓（代码:权重）</label>
           <input v-model="portfolioInput" placeholder="600519:0.15,000001:0.10" />
         </div>
       </template>
@@ -175,10 +191,10 @@ onUnmounted(clearTimer)
           :disabled="loading || !canSubmit"
           @click="handleTrigger"
         >
-          {{ loading ? 'Running...' : 'Trigger' }}
+          {{ loading ? '运行中...' : '触发分析' }}
         </button>
         <button class="px-4 py-2 rounded border text-sm" :disabled="!currentRun" @click="stopPolling">
-          Stop Polling
+          停止轮询
         </button>
       </div>
       <p v-if="error" class="text-sm text-[var(--negative)]">{{ error }}</p>
@@ -186,36 +202,36 @@ onUnmounted(clearTimer)
 
     <div v-if="currentRun" class="card p-4 space-y-3">
       <div class="flex items-center justify-between">
-        <h2 class="font-semibold">Run Status</h2>
-        <span class="text-sm">{{ currentRun.status }} <span v-if="isPolling">(polling)</span></span>
+        <h2 class="font-semibold">运行状态</h2>
+        <span class="text-sm">{{ statusLabelMap[currentRun.status] || currentRun.status }} <span v-if="isPolling">（轮询中）</span></span>
       </div>
-      <div class="text-sm text-[var(--text-secondary)]">mode: {{ currentRun.mode }}</div>
-      <div class="text-sm text-[var(--text-secondary)]">symbols: {{ (currentRun.symbols || []).join(', ') }}</div>
+      <div class="text-sm text-[var(--text-secondary)]">分析模式：{{ modeLabelMap[currentRun.mode] || currentRun.mode }}</div>
+      <div class="text-sm text-[var(--text-secondary)]">标的代码：{{ (currentRun.symbols || []).join(', ') }}</div>
       <div class="flex gap-2">
         <button class="text-sm text-[var(--brand-primary)] hover:underline" @click="router.push(`/decisions/${currentRun.id}`)">
-          decision detail
+          决策详情
         </button>
         <button class="text-sm text-[var(--brand-primary)] hover:underline" @click="router.push('/approvals')">
-          approvals
+          审批中心
         </button>
       </div>
     </div>
 
     <div v-if="currentRun?.mode === 'rebalance' && orders.length" class="card p-4">
-      <h3 class="font-semibold mb-2">Rebalance Orders (stock-only)</h3>
+      <h3 class="font-semibold mb-2">调仓订单（仅股票）</h3>
       <table class="w-full text-sm">
         <thead>
           <tr class="text-left border-b border-[var(--border-subtle)]">
-            <th class="py-2">symbol</th>
-            <th class="py-2">action</th>
-            <th class="py-2">current</th>
-            <th class="py-2">target</th>
+            <th class="py-2">标的</th>
+            <th class="py-2">动作</th>
+            <th class="py-2">当前权重</th>
+            <th class="py-2">目标权重</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="o in orders" :key="o.symbol" class="border-b border-[var(--border-subtle)]">
             <td class="py-2">{{ o.symbol }}</td>
-            <td class="py-2">{{ o.action }}</td>
+            <td class="py-2">{{ o.action === 'buy' ? '买入' : o.action === 'sell' ? '卖出' : '持有' }}</td>
             <td class="py-2">{{ (o.current_weight * 100).toFixed(1) }}%</td>
             <td class="py-2">{{ (o.target_weight * 100).toFixed(1) }}%</td>
           </tr>

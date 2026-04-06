@@ -41,7 +41,7 @@ onMounted(load)
 <template>
   <div class="p-6 max-w-[1200px] mx-auto space-y-5">
     <div class="flex items-center justify-between">
-      <h1 class="text-xl font-bold text-[var(--text-primary)]">总览仪表盘</h1>
+      <h1 class="text-xl font-bold text-[var(--text-primary)]">资产总览</h1>
       <button class="px-3 py-1.5 rounded bg-[var(--brand-primary)] text-white text-sm" @click="load">刷新</button>
     </div>
 
@@ -83,8 +83,8 @@ onMounted(load)
         <tbody>
           <tr v-for="row in latestDecisions" :key="row.id" class="border-b border-[var(--border-subtle)]">
             <td class="py-2 text-xs">{{ row.started_at?.slice(0, 19).replace('T', ' ') }}</td>
-            <td class="py-2">{{ row.mode }}</td>
-            <td class="py-2">{{ row.status }}</td>
+            <td class="py-2">{{ row.mode === 'targeted' ? '定向分析' : row.mode === 'rebalance' ? '调仓分析' : row.mode }}</td>
+            <td class="py-2">{{ row.status === 'running' ? '运行中' : row.status === 'completed' ? '已完成' : row.status === 'failed' ? '失败' : row.status }}</td>
             <td class="py-2">{{ (row.symbols || []).join(', ') }}</td>
             <td class="py-2 text-right">
               <button class="text-[var(--brand-primary)] hover:underline" @click="router.push(`/decisions/${row.id}`)">详情</button>
@@ -92,7 +92,7 @@ onMounted(load)
           </tr>
         </tbody>
       </table>
+      <div v-if="!loading && !latestDecisions.length" class="text-sm text-[var(--text-tertiary)]">暂无决策记录。</div>
     </div>
   </div>
 </template>
-

@@ -34,12 +34,32 @@ export interface GraphNode {
   mode?: 'targeted' | 'rebalance' | null
   factor_snapshot?: Record<string, unknown> | null
   market_regime?: string | null
+  node_type?: 'experience' | 'symbol' | 'market_regime' | 'factor' | string | null
+  display_label?: string | null
+  entity_key?: string | null
 }
 
 export interface GraphNodesResponse {
   nodes: GraphNode[]
   items?: GraphNode[]
   total: number
+}
+
+export interface GraphEdge {
+  edge_id: string
+  source: string
+  target: string
+  relation_type: string
+  strength: number
+  shared_symbols: string[]
+  shared_market_regime?: string | null
+}
+
+export interface GraphNetworkResponse {
+  nodes: GraphNode[]
+  edges: GraphEdge[]
+  total_nodes: number
+  total_edges: number
 }
 
 export interface GraphSearchRequest {

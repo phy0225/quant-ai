@@ -1,0 +1,1 @@
+import{y as s}from"./index-Bi_--mi5.js";const t={daily(r){return s.get("/api/v1/factors/daily",{params:{date:r}})},discover(r){return s.post("/api/v1/factors/discover",r)},listDiscoveryTasks(r=20){return s.get("/api/v1/factors/discover",{params:{limit:r}})},getDiscoveryTask(r){return s.get(`/api/v1/factors/discover/${r}`)}};export{t as f};
