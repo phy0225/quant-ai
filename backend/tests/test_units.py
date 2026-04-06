@@ -7,6 +7,98 @@ import json
 from unittest.mock import patch, AsyncMock, MagicMock
 
 
+def test_mysql_config_has_required_fields(app_settings):
+    assert app_settings.DB_HOST
+    assert app_settings.DB_PORT == 3306
+    assert app_settings.DB_USER
+    assert app_settings.DB_NAME
+    assert app_settings.mysql_dsn.startswith("mysql+asyncmy://")
+
+
+def test_mysql_connection_settings_exports_expected_keys():
+    from database import mysql_connection_settings
+
+    config = mysql_connection_settings()
+
+    assert config["host"]
+    assert config["port"] == 3306
+    assert config["user"]
+    assert config["database"]
+    assert str(config["dsn"]).startswith("mysql+asyncmy://")
+
+
+class _FakeCursor:
+    def __init__(self, fetchone_result=None, fetchall_result=None):
+        self.fetchone_result = fetchone_result
+        self.fetchall_result = fetchall_result or []
+        self.executed = []
+        self.description = []
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        return False
+
+    async def execute(self, sql, params=None):
+        self.executed.append((sql, params))
+        if "SELECT" in sql:
+            self.description = [
+                ("id",), ("mode",), ("status",), ("triggered_by",), ("symbols",),
+                ("candidate_symbols",), ("current_portfolio",), ("factor_snapshot_id",),
+                ("factor_date",), ("strategy_version_id",), ("market_regime",),
+                ("final_direction",), ("risk_level",), ("error_message",),
+                ("started_at",), ("completed_at",),
+            ]
+
+    async def fetchone(self):
+        return self.fetchone_result
+
+    async def fetchall(self):
+        return self.fetchall_result
+
+
+class _FakeConnection:
+    def __init__(self, cursor):
+        self._cursor = cursor
+
+    def cursor(self):
+        return self._cursor
+
+
+@pytest.mark.asyncio
+async def test_insert_and_fetch_decision_run_query_helpers():
+    from db.queries.decisions import get_decision_run, insert_decision_run
+
+    insert_cursor = _FakeCursor()
+    insert_conn = _FakeConnection(insert_cursor)
+    decision_id = await insert_decision_run(insert_conn, {
+        "id": "decision-1",
+        "mode": "targeted",
+        "symbols": ["600036"],
+        "current_portfolio": {"600036": 0.1},
+    })
+
+    assert decision_id == "decision-1"
+    assert insert_cursor.executed
+    insert_sql, insert_params = insert_cursor.executed[0]
+    assert "INSERT INTO decision_runs" in insert_sql
+    assert insert_params["mode"] == "targeted"
+    assert "600036" in insert_params["symbols"]
+
+    row = (
+        "decision-1", "targeted", "running", "user", '["600036"]', "[]", '{"600036": 0.1}',
+        None, None, None, None, None, None, None, None, None,
+    )
+    fetch_cursor = _FakeCursor(fetchone_result=row)
+    fetch_conn = _FakeConnection(fetch_cursor)
+    fetched = await get_decision_run(fetch_conn, "decision-1")
+
+    assert fetched is not None
+    assert fetched["id"] == "decision-1"
+    assert fetched["mode"] == "targeted"
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # 技术分析规则引擎
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -698,3 +790,31 @@ class TestGraphService:
         from services.graph import _make_embedding
         e = _make_embedding(["600519"], "hold")
         assert len(e) == 32
+
+
+class TestSchedulerAndNav:
+
+    def test_scheduler_registers_factor_nav_and_settlement_jobs(self):
+        from services.scheduler import build_scheduler
+
+        jobs = build_scheduler().get_jobs()
+        job_ids = {job.id for job in jobs}
+
+        assert "factor_engine_daily" in job_ids
+        assert "portfolio_nav_daily" in job_ids
+        assert "t5_settlement_daily" in job_ids
+
+    def test_build_nav_snapshot_is_deterministic(self):
+        from services.nav_calculator import build_nav_snapshot
+
+        holdings = [
+            {"symbol": "600519", "weight": 0.20, "market_value": 200000, "pnl_pct": 0.10},
+            {"symbol": "300750", "weight": 0.15, "market_value": 150000, "pnl_pct": -0.05},
+        ]
+        snapshot = build_nav_snapshot(holdings, "2026-04-03")
+
+        assert snapshot["trade_date"] == "2026-04-03"
+        assert snapshot["holding_count"] == 2
+        assert snapshot["gross_exposure"] == 0.35
+        assert snapshot["nav"] == 1.0125
+        assert snapshot["cash_weight"] == 0.65

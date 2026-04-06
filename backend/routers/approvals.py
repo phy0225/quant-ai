@@ -2,16 +2,24 @@
 from __future__ import annotations
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from database import get_db
 from routers.portfolio import apply_recommendations
 from models import ApprovalRecord, RiskConfig
-from schemas import ApprovalActionRequest, ModifyWeightsRequest, BatchActionRequest
+from schemas import ApprovalActionRequest, ModifyWeightsRequest
 from services.graph import add_graph_node
 from websocket_manager import manager
 
 router = APIRouter(prefix="/api/v1/approvals", tags=["approvals"])
+
+
+class BatchActionRequest(BaseModel):
+    approval_ids: list[str]
+    action: str
+    reviewed_by: str
+    comment: str | None = None
 
 def _fmt(dt) -> str | None:
     return dt.isoformat() if dt else None

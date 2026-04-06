@@ -102,6 +102,7 @@ class CNTechnicalAnalyst(BaseAgent):
         snap = await fetch_cn_snapshot(sym)
         if not snap:
             return self._fallback(sym)
+        factor_hint, factor_snapshot = self._factor_hint(context, sym)
 
         direction, confidence, rule_name, reasons = _run_rules(snap)
         reason_text = "；".join(reasons)
@@ -118,6 +119,8 @@ class CNTechnicalAnalyst(BaseAgent):
         # LLM 生成摘要，融入持仓信息
         system = "你是A股量化技术分析师。根据以下技术指标和持仓情况，写2-3句专业中文摘要，必须引用具体数值，如有持仓需结合成本价和盈亏分析。"
         user_parts = [f"标的：{sym}", f"命中规则：{rule_name}", f"技术依据：{reason_text}"]
+        if factor_hint:
+            user_parts.append(f"\n{factor_hint}")
         if holding:
             user_parts.append(f"\n{holding_ctx}")
         if override_note:
@@ -151,6 +154,7 @@ class CNTechnicalAnalyst(BaseAgent):
                 "rule_triggered": rule_name,
                 "holding": holding,
                 "override_note": override_note,
+                "factor_context": factor_snapshot,
                 **snap,
             },
         }

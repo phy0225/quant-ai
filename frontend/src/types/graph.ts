@@ -1,4 +1,4 @@
-export interface SimilarityTrendPoint {
+﻿export interface SimilarityTrendPoint {
   month: string
   avg_similarity: number
 }
@@ -31,24 +31,52 @@ export interface GraphNode {
   outcome_return: number
   outcome_sharpe: number
   symbols: string[]
+  mode?: 'targeted' | 'rebalance' | null
+  factor_snapshot?: Record<string, unknown> | null
+  market_regime?: string | null
+  node_type?: 'experience' | 'symbol' | 'market_regime' | 'factor' | string | null
+  display_label?: string | null
+  entity_key?: string | null
 }
 
 export interface GraphNodesResponse {
   nodes: GraphNode[]
+  items?: GraphNode[]
   total: number
 }
 
+export interface GraphEdge {
+  edge_id: string
+  source: string
+  target: string
+  relation_type: string
+  strength: number
+  shared_symbols: string[]
+  shared_market_regime?: string | null
+}
+
+export interface GraphNetworkResponse {
+  nodes: GraphNode[]
+  edges: GraphEdge[]
+  total_nodes: number
+  total_edges: number
+}
+
 export interface GraphSearchRequest {
-  query_vector: number[]
+  symbols?: string[]
+  query_vector?: number[]
   top_k: number
-  approved_only: boolean
-  min_similarity: number
+  approved_only?: boolean
+  min_similarity?: number
 }
 
 export interface GraphSearchResultItem {
   node_id: string
   similarity_score: number
-  node: GraphNode
+  node?: GraphNode
+  outcome_return?: number
+  approved?: boolean
+  timestamp?: string
 }
 
 export interface CytoscapeNodeData {

@@ -21,6 +21,12 @@ export interface BatchActionResponse {
   fail_count: number
 }
 
+export interface ModifyApprovalOrdersRequest {
+  modified_weights: Record<string, number>
+  reviewed_by: string
+  comment?: string
+}
+
 export const approvalsApi = {
   list(params?: { status?: string; page?: number; page_size?: number }): Promise<ApprovalListResponse> {
     return apiClient.get('/api/v1/approvals/', { params })
@@ -34,7 +40,7 @@ export const approvalsApi = {
     return apiClient.post(`/api/v1/approvals/${id}/action`, payload)
   },
 
-  modifyWeights(id: string, payload: { modified_weights: Record<string, number>; reviewed_by: string; comment?: string }): Promise<ApprovalRecord> {
+  modifyWeights(id: string, payload: ModifyApprovalOrdersRequest): Promise<ApprovalRecord> {
     return apiClient.put(`/api/v1/approvals/${id}/modify`, payload)
   },
 

@@ -1,8 +1,20 @@
-from pydantic_settings import BaseSettings
 from typing import List
+
+from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///./quant_ai.db"
+    DB_HOST: str = "localhost"
+    DB_PORT: int = 3306
+    DB_USER: str = "quant_user"
+    DB_PASSWORD: str = ""
+    DB_NAME: str = "quant_ai"
+    FEATURE_PLATFORM_MODE: str = "api"
+    FEATURE_PLATFORM_API_URL: str = ""
+    FEATURE_PLATFORM_API_KEY: str = ""
+    FEATURE_PLATFORM_DB_URL: str = ""
+    TRADING_CALENDAR_CACHE_DAYS: int = 30
+    APSCHEDULER_ENABLED: bool = False
 
     # LLM 配置
     LLM_API_URL: str = ""
@@ -22,11 +34,16 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins_list(self) -> List[str]:
-        return [o.strip() for o in self.CORS_ORIGINS.split(",")]
+        return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
 
     @property
     def use_mock(self) -> bool:
         return not bool(self.LLM_API_KEY.strip())
+
+    @property
+    def mysql_dsn(self) -> str:
+        password = f":{self.DB_PASSWORD}" if self.DB_PASSWORD else ""
+        return f"mysql+asyncmy://{self.DB_USER}{password}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
     class Config:
         env_file = ".env"

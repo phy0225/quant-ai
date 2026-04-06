@@ -1,5 +1,5 @@
 import apiClient from './client'
-import type { DecisionTriggerRequest, DecisionRun } from '@/types/decision'
+import type { DecisionRun, DecisionTriggerRequest, RebalanceOrder } from '@/types/decision'
 
 export interface SymbolStat {
   symbol: string
@@ -16,6 +16,13 @@ export interface DecisionStatsResponse {
   generated_at: string
 }
 
+export interface DecisionListResponse {
+  items: DecisionRun[]
+  total: number
+  page: number
+  page_size: number
+}
+
 export const decisionsApi = {
   trigger(payload: DecisionTriggerRequest): Promise<DecisionRun> {
     return apiClient.post('/api/v1/decisions/trigger', payload)
@@ -25,7 +32,11 @@ export const decisionsApi = {
     return apiClient.get(`/api/v1/decisions/${id}`)
   },
 
-  list(params?: { page?: number; page_size?: number }): Promise<{ items: DecisionRun[]; total: number }> {
+  getOrders(id: string): Promise<RebalanceOrder[]> {
+    return apiClient.get(`/api/v1/decisions/${id}/orders`)
+  },
+
+  list(params?: { page?: number; page_size?: number }): Promise<DecisionListResponse> {
     return apiClient.get('/api/v1/decisions/', { params })
   },
 
@@ -33,3 +44,4 @@ export const decisionsApi = {
     return apiClient.get('/api/v1/decisions/stats', { params })
   },
 }
+

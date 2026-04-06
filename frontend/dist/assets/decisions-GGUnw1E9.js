@@ -1,0 +1,1 @@
+import{y as e}from"./index-Bi_--mi5.js";const t={trigger(i){return e.post("/api/v1/decisions/trigger",i)},get(i){return e.get(`/api/v1/decisions/${i}`)},getOrders(i){return e.get(`/api/v1/decisions/${i}/orders`)},list(i){return e.get("/api/v1/decisions/",{params:i})},stats(i){return e.get("/api/v1/decisions/stats",{params:i})}};export{t as d};

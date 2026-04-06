@@ -1,7 +1,7 @@
 """Pydantic schemas for request/response validation."""
 from __future__ import annotations
 from datetime import datetime
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Literal
 from pydantic import BaseModel, Field, field_validator
 
 # ─── Common ───────────────────────────────────────────────────────────────────
@@ -121,6 +121,7 @@ class BacktestRunRequest(BaseModel):
     rebalance_frequency: str = "weekly"
     commission_rate: float = 0.003
     slippage: float = 0.001
+    backtest_mode: Literal["signal_based", "factor_based"] = "signal_based"
 
 class NavPoint(BaseModel):
     date: str
@@ -143,6 +144,7 @@ class BacktestReportOut(BaseModel):
     end_date: str
     initial_capital: float
     benchmark: str
+    backtest_mode: Optional[str] = None
     commission_rate: Optional[float] = None
     slippage: Optional[float] = None
     nav_curve: Optional[List[dict]] = None
@@ -246,10 +248,31 @@ class GraphNodeOut(BaseModel):
     outcome_return: float
     outcome_sharpe: float
     symbols: List[str]
+    mode: Optional[str] = None
+    factor_snapshot: Optional[dict] = None
+    market_regime: Optional[str] = None
+    node_type: Optional[str] = None
+    display_label: Optional[str] = None
+    entity_key: Optional[str] = None
 
 class GraphNodesResponse(BaseModel):
     nodes: List[GraphNodeOut]
     total: int
+
+class GraphEdgeOut(BaseModel):
+    edge_id: str
+    source: str
+    target: str
+    relation_type: str
+    strength: float
+    shared_symbols: List[str] = []
+    shared_market_regime: Optional[str] = None
+
+class GraphNetworkResponse(BaseModel):
+    nodes: List[GraphNodeOut]
+    edges: List[GraphEdgeOut]
+    total_nodes: int
+    total_edges: int
 
 class SimilarityTrendPoint(BaseModel):
     timestamp: str

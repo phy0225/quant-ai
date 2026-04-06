@@ -4,19 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from database import get_db
 from models import GraphNode
-from services.graph import get_graph_stats, get_similar_cases
+from services.graph import get_graph_network, get_graph_stats, get_similar_cases, serialize_graph_node
 
 router = APIRouter(prefix="/api/v1/graph", tags=["graph"])
-
-def _serialize_node(n: GraphNode) -> dict:
-    return {
-        "node_id": n.node_id,
-        "timestamp": n.timestamp.isoformat(),
-        "approved": n.approved,
-        "outcome_return": n.outcome_return,
-        "outcome_sharpe": n.outcome_sharpe,
-        "symbols": n.symbols or [],
-    }
 
 @router.get("/stats")
 async def graph_stats(db: AsyncSession = Depends(get_db)):
@@ -37,7 +27,17 @@ async def list_nodes(
     from sqlalchemy import func
     total_result = await db.execute(select(func.count(GraphNode.node_id)))
     total = total_result.scalar() or 0
-    return {"nodes": [_serialize_node(n) for n in nodes], "total": total}
+    serialized = [serialize_graph_node(n) for n in nodes]
+    return {"nodes": serialized, "items": serialized, "total": total}
+
+@router.get("/network")
+async def graph_network(
+    limit: int = 100,
+    offset: int = 0,
+    approved_only: bool = False,
+    db: AsyncSession = Depends(get_db),
+):
+    return await get_graph_network(db=db, limit=limit, approved_only=approved_only, offset=offset)
 
 @router.get("/nodes/{node_id}")
 async def get_node(node_id: str, db: AsyncSession = Depends(get_db)):
@@ -45,7 +45,7 @@ async def get_node(node_id: str, db: AsyncSession = Depends(get_db)):
     node = result.scalars().first()
     if not node:
         raise HTTPException(status_code=404, detail="Node not found.")
-    return _serialize_node(node)
+    return serialize_graph_node(node)
 
 @router.post("/search")
 async def search_nodes(payload: dict, db: AsyncSession = Depends(get_db)):

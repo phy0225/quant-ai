@@ -1,0 +1,253 @@
+Attempt: 1
+Time: 2026-03-26T12:11:37.652446
+========================================================================
+Backend: PASS
+Frontend: PASS
+
+Backend output:
+========================================================================
+============================= test session starts =============================
+collecting ... collected 189 items
+
+tests/test_api.py::TestHealth::test_health_ok PASSED                     [  0%]
+tests/test_api.py::TestHealth::test_404_unknown_path PASSED              [  1%]
+tests/test_api.py::TestDecisions::test_trigger_returns_running_status [cn_market] cache hit: 600519
+PASSED [  1%]
+tests/test_api.py::TestDecisions::test_trigger_multiple_symbols PASSED   [  2%]
+tests/test_api.py::TestDecisions::test_trigger_with_portfolio PASSED     [  2%]
+tests/test_api.py::TestDecisions::test_trigger_empty_symbols_rejected PASSED [  3%]
+tests/test_api.py::TestDecisions::test_trigger_blocked_by_emergency_stop PASSED [  3%]
+tests/test_api.py::TestDecisions::test_trigger_blocked_by_circuit_breaker_l2 PASSED [  4%]
+tests/test_api.py::TestDecisions::test_get_decision_by_id PASSED         [  4%]
+tests/test_api.py::TestDecisions::test_get_decision_not_found PASSED     [  5%]
+tests/test_api.py::TestDecisions::test_list_decisions_pagination PASSED  [  5%]
+tests/test_api.py::TestApprovals::test_approve_creates_portfolio_holding PASSED [  6%]
+tests/test_api.py::TestApprovals::test_approve_updates_existing_holding PASSED [  6%]
+tests/test_api.py::TestApprovals::test_modify_weight_then_portfolio_reflects_new_weight PASSED [  7%]
+tests/test_api.py::TestApprovals::test_modify_weight_recommendation_also_updated PASSED [  7%]
+tests/test_api.py::TestApprovals::test_modify_weight_exceeds_limit_rejected PASSED [  8%]
+tests/test_api.py::TestApprovals::test_modify_weight_negative_rejected PASSED [  8%]
+tests/test_api.py::TestApprovals::test_modify_zero_weight_clears_holding PASSED [  9%]
+tests/test_api.py::TestApprovals::test_reject_does_not_change_portfolio PASSED [ 10%]
+tests/test_api.py::TestApprovals::test_cannot_approve_twice PASSED       [ 10%]
+tests/test_api.py::TestApprovals::test_cannot_modify_approved PASSED     [ 11%]
+tests/test_api.py::TestApprovals::test_approve_blocked_by_emergency_stop PASSED [ 11%]
+tests/test_api.py::TestApprovals::test_approve_creates_portfolio_snapshot PASSED [ 12%]
+tests/test_api.py::TestPortfolio::test_create_and_verify_all_fields PASSED [ 12%]
+tests/test_api.py::TestPortfolio::test_create_upsert_same_symbol PASSED  [ 13%]
+tests/test_api.py::TestPortfolio::test_update_weight_persists PASSED     [ 13%]
+tests/test_api.py::TestPortfolio::test_delete_then_not_in_list PASSED    [ 14%]
+tests/test_api.py::TestPortfolio::test_summary_total_weight PASSED       [ 14%]
+tests/test_api.py::TestPortfolio::test_update_not_found PASSED           [ 15%]
+tests/test_api.py::TestPortfolio::test_delete_not_found PASSED           [ 15%]
+tests/test_api.py::TestRisk::test_get_status_default PASSED              [ 16%]
+tests/test_api.py::TestRisk::test_update_params_persists PASSED          [ 16%]
+tests/test_api.py::TestRisk::test_update_params_partial PASSED           [ 17%]
+tests/test_api.py::TestRisk::test_emergency_stop_blocks_trigger PASSED   [ 17%]
+tests/test_api.py::TestRisk::test_emergency_stop_deactivate_correct_password PASSED [ 18%]
+tests/test_api.py::TestRisk::test_emergency_stop_wrong_password PASSED   [ 19%]
+tests/test_api.py::TestRisk::test_circuit_breaker_reset PASSED           [ 19%]
+tests/test_api.py::TestRules::test_create_and_list PASSED                [ 20%]
+tests/test_api.py::TestRules::test_toggle_changes_active_status PASSED   [ 20%]
+tests/test_api.py::TestRules::test_delete_removes_rule PASSED            [ 21%]
+tests/test_api.py::TestRules::test_active_only_filter PASSED             [ 21%]
+tests/test_api.py::TestRules::test_update_rule_persists PASSED           [ 22%]
+tests/test_api.py::TestBacktest::test_run_and_list PASSED                [ 22%]
+tests/test_api.py::TestBacktest::test_requires_2_symbols PASSED          [ 23%]
+tests/test_api.py::TestBacktest::test_completed_report_has_metrics PASSED [ 23%]
+tests/test_api.py::TestDecisionStats::test_stats_empty_returns_zero PASSED [ 24%]
+tests/test_api.py::TestDecisionStats::test_stats_counts_completed_only PASSED [ 24%]
+tests/test_api.py::TestDecisionStats::test_stats_symbol_filter PASSED    [ 25%]
+tests/test_api.py::TestDecisionStats::test_stats_direction_distribution PASSED [ 25%]
+tests/test_api.py::TestBatchReject::test_batch_reject_success PASSED     [ 26%]
+tests/test_api.py::TestBatchReject::test_batch_reject_partial_fail PASSED [ 26%]
+tests/test_api.py::TestBatchReject::test_batch_reject_only_allows_rejected_action PASSED [ 27%]
+tests/test_api.py::TestBatchReject::test_batch_reject_empty_ids PASSED   [ 28%]
+tests/test_api.py::TestBatchReject::test_batch_reject_too_many_ids PASSED [ 28%]
+tests/test_api.py::TestBatchReject::test_batch_reject_blocked_by_emergency_stop PASSED [ 29%]
+tests/test_api.py::TestGraph::test_approve_creates_graph_node PASSED     [ 29%]
+tests/test_api.py::TestGraph::test_reject_also_creates_node_with_approved_false PASSED [ 30%]
+tests/test_api.py::TestGraph::test_approved_node_has_approved_true PASSED [ 30%]
+tests/test_api.py::TestGraph::test_stats_after_approve PASSED            [ 31%]
+tests/test_api.py::TestGraph::test_search_similar PASSED                 [ 31%]
+tests/test_api.py::TestGraph::test_node_detail PASSED                    [ 32%]
+tests/test_api.py::TestGraph::test_node_not_found PASSED                 [ 32%]
+tests/test_flows.py::TestFlow01CompleteDecisionFlow::test_approve_updates_portfolio_weight PASSED [ 33%]
+tests/test_flows.py::TestFlow01CompleteDecisionFlow::test_approve_creates_snapshot PASSED [ 33%]
+tests/test_flows.py::TestFlow01CompleteDecisionFlow::test_snapshot_holdings_match_portfolio PASSED [ 34%]
+tests/test_flows.py::TestFlow01CompleteDecisionFlow::test_approve_creates_graph_node_with_correct_approved_flag PASSED [ 34%]
+tests/test_flows.py::TestFlow02ModifyWeightPersistence::test_modified_weight_not_original_recommendation PASSED [ 35%]
+tests/test_flows.py::TestFlow02ModifyWeightPersistence::test_approval_record_reflects_modified_weight PASSED [ 35%]
+tests/test_flows.py::TestFlow02ModifyWeightPersistence::test_zero_weight_deletes_holding PASSED [ 36%]
+tests/test_flows.py::TestFlow02ModifyWeightPersistence::test_modify_then_snapshot_reflects_new_weight PASSED [ 37%]
+tests/test_flows.py::TestFlow03RejectPreservesPortfolio::test_reject_does_not_update_weight PASSED [ 37%]
+tests/test_flows.py::TestFlow03RejectPreservesPortfolio::test_reject_does_not_create_snapshot PASSED [ 38%]
+tests/test_flows.py::TestFlow04RiskParamsEnforcement::test_lower_limit_blocks_previously_valid_weight PASSED [ 38%]
+tests/test_flows.py::TestFlow04RiskParamsEnforcement::test_raise_limit_allows_previously_blocked_weight PASSED [ 39%]
+tests/test_flows.py::TestFlow05EmergencyStopBlocksAll::test_emergency_stop_blocks_trigger_and_approve PASSED [ 39%]
+tests/test_flows.py::TestFlow05EmergencyStopBlocksAll::test_operations_resume_after_deactivation PASSED [ 40%]
+tests/test_flows.py::TestFlow06MultiSymbolIsolation::test_unapproved_symbol_weight_unchanged PASSED [ 40%]
+tests/test_flows.py::TestFlow07CumulativeApprovals::test_consecutive_approvals_accumulate PASSED [ 41%]
+tests/test_flows.py::TestFlow08ApprovalStateMachine::test_all_illegal_transitions_rejected PASSED [ 41%]
+tests/test_flows.py::TestFlow08ApprovalStateMachine::test_modify_then_action_rejected PASSED [ 42%]
+tests/test_flows.py::TestFlow08ApprovalStateMachine::test_modify_already_approved_rejected PASSED [ 42%]
+tests/test_scenarios.py::TestScenario01RepeatAnalysis::test_multiple_triggers_create_separate_decisions [cn_fundamental] cache hit: 600519
+PASSED [ 43%]
+tests/test_scenarios.py::TestScenario01RepeatAnalysis::test_each_trigger_creates_separate_approval PASSED [ 43%]
+tests/test_scenarios.py::TestScenario02WeightBoundaries::test_weight_boundary_values[0.2-200] PASSED [ 44%]
+tests/test_scenarios.py::TestScenario02WeightBoundaries::test_weight_boundary_values[0.19-200] PASSED [ 44%]
+tests/test_scenarios.py::TestScenario02WeightBoundaries::test_weight_boundary_values[0.001-200] PASSED [ 45%]
+tests/test_scenarios.py::TestScenario02WeightBoundaries::test_weight_boundary_values[0.201-422] PASSED [ 46%]
+tests/test_scenarios.py::TestScenario02WeightBoundaries::test_weight_boundary_values[-0.01-422] PASSED [ 46%]
+tests/test_scenarios.py::TestScenario02WeightBoundaries::test_zero_weight_clears_holding PASSED [ 47%]
+tests/test_scenarios.py::TestScenario02WeightBoundaries::test_weight_at_exact_limit_is_allowed PASSED [ 47%]
+tests/test_scenarios.py::TestScenario03CircuitBreakerLevels::test_circuit_breaker_behavior[0-True-True] PASSED [ 48%]
+tests/test_scenarios.py::TestScenario03CircuitBreakerLevels::test_circuit_breaker_behavior[1-True-True] PASSED [ 48%]
+tests/test_scenarios.py::TestScenario03CircuitBreakerLevels::test_circuit_breaker_behavior[2-False-False] PASSED [ 49%]
+tests/test_scenarios.py::TestScenario03CircuitBreakerLevels::test_circuit_breaker_behavior[3-False-False] PASSED [ 49%]
+tests/test_scenarios.py::TestScenario04ConcurrentRequests::test_concurrent_triggers_all_succeed [cn_market] cache hit: 002594
+PASSED [ 50%]
+tests/test_scenarios.py::TestScenario04ConcurrentRequests::test_concurrent_approvals_final_state_consistent PASSED [ 50%]
+tests/test_scenarios.py::TestScenario05DataConsistency::test_portfolio_and_snapshot_always_consistent PASSED [ 51%]
+tests/test_scenarios.py::TestScenario05DataConsistency::test_graph_node_count_matches_processed_approvals PASSED [ 51%]
+tests/test_scenarios.py::TestScenario06PaginationAndFiltering::test_decisions_pagination PASSED [ 52%]
+tests/test_scenarios.py::TestScenario06PaginationAndFiltering::test_approvals_filter_by_status PASSED [ 52%]
+tests/test_scenarios.py::TestScenario07HoldingFieldPreservation::test_approve_preserves_cost_price_and_quantity PASSED [ 53%]
+tests/test_scenarios.py::TestScenario08RiskParamIsolation::test_risk_param_change_does_not_affect_existing_holdings PASSED [ 53%]
+tests/test_scenarios.py::TestScenario08RiskParamIsolation::test_updated_risk_params_persist_across_requests PASSED [ 54%]
+tests/test_units.py::TestTechnicalRules::test_rsi_80_extreme_overbought_sell PASSED [ 55%]
+tests/test_units.py::TestTechnicalRules::test_rsi_18_extreme_oversold_buy PASSED [ 55%]
+tests/test_units.py::TestTechnicalRules::test_rsi_75_overbought_with_upper_band PASSED [ 56%]
+tests/test_units.py::TestTechnicalRules::test_rsi_75_overbought_without_upper_band PASSED [ 56%]
+tests/test_units.py::TestTechnicalRules::test_rsi_25_oversold_with_lower_band PASSED [ 57%]
+tests/test_units.py::TestTechnicalRules::test_rsi_25_oversold_without_lower_band PASSED [ 57%]
+tests/test_units.py::TestTechnicalRules::test_bull_trend_with_volume PASSED [ 58%]
+tests/test_units.py::TestTechnicalRules::test_bull_trend_without_volume PASSED [ 58%]
+tests/test_units.py::TestTechnicalRules::test_bear_trend PASSED          [ 59%]
+tests/test_units.py::TestTechnicalRules::test_price_above_upper_band PASSED [ 59%]
+tests/test_units.py::TestTechnicalRules::test_price_below_lower_band PASSED [ 60%]
+tests/test_units.py::TestTechnicalRules::test_neutral_hold PASSED        [ 60%]
+tests/test_units.py::TestTechnicalRules::test_same_input_same_output_10_times PASSED [ 61%]
+tests/test_units.py::TestHoldingOverride::test_profit_80_buy_to_hold PASSED [ 61%]
+tests/test_units.py::TestHoldingOverride::test_profit_80_hold_confidence_capped PASSED [ 62%]
+tests/test_units.py::TestHoldingOverride::test_profit_50_60_confidence_capped PASSED [ 62%]
+tests/test_units.py::TestHoldingOverride::test_loss_30_hold_confidence_reduced PASSED [ 63%]
+tests/test_units.py::TestHoldingOverride::test_no_holding_no_change PASSED [ 64%]
+tests/test_units.py::TestHoldingOverride::test_small_profit_no_override PASSED [ 64%]
+tests/test_units.py::TestHoldingOverride::test_small_loss_no_override PASSED [ 65%]
+tests/test_units.py::TestHoldingOverride::test_sell_signal_not_overridden_by_profit PASSED [ 65%]
+tests/test_units.py::TestFundamentalDataLevel::test_none_is_C PASSED     [ 66%]
+tests/test_units.py::TestFundamentalDataLevel::test_empty_dict_is_C PASSED [ 66%]
+tests/test_units.py::TestFundamentalDataLevel::test_only_pe_pb_is_B PASSED [ 67%]
+tests/test_units.py::TestFundamentalDataLevel::test_only_total_mv_is_B PASSED [ 67%]
+tests/test_units.py::TestFundamentalDataLevel::test_only_revenue_yoy_is_B PASSED [ 68%]
+tests/test_units.py::TestFundamentalDataLevel::test_full_data_is_A PASSED [ 68%]
+tests/test_units.py::TestFundamentalDataLevel::test_financial_only_is_B PASSED [ 69%]
+tests/test_units.py::TestSentimentScoring::test_buy_signal_when_score_high PASSED [ 69%]
+tests/test_units.py::TestSentimentScoring::test_sell_signal_when_score_low PASSED [ 70%]
+tests/test_units.py::TestSentimentScoring::test_hold_when_neutral PASSED [ 70%]
+tests/test_units.py::TestSentimentScoring::test_rsi_overbought_contributes_negative PASSED [ 71%]
+tests/test_units.py::TestSentimentScoring::test_missing_data_no_crash PASSED [ 71%]
+tests/test_units.py::TestPipelineVoting::test_buy_majority_increases_weight PASSED [ 72%]
+tests/test_units.py::TestPipelineVoting::test_sell_majority_decreases_weight PASSED [ 73%]
+tests/test_units.py::TestPipelineVoting::test_level_c_excluded_from_voting PASSED [ 73%]
+tests/test_units.py::TestPipelineVoting::test_missing_agents_recorded PASSED [ 74%]
+tests/test_units.py::TestPipelineVoting::test_no_valid_signals_forced_hold PASSED [ 74%]
+tests/test_units.py::TestPipelineVoting::test_risk_check_position_limit PASSED [ 75%]
+tests/test_units.py::TestPipelineVoting::test_risk_check_sell_majority PASSED [ 75%]
+tests/test_units.py::TestPipelineVoting::test_risk_check_buy_majority PASSED [ 76%]
+tests/test_units.py::TestPipelineVoting::test_risk_check_mixed_signals PASSED [ 76%]
+tests/test_units.py::TestPipelineVoting::test_is_data_missing_c_level PASSED [ 77%]
+tests/test_units.py::TestPipelineVoting::test_is_data_missing_a_level PASSED [ 77%]
+tests/test_units.py::TestPipelineVoting::test_is_data_missing_no_snapshot PASSED [ 78%]
+tests/test_units.py::TestPortfolioContext::test_get_holding_dict_format PASSED [ 78%]
+tests/test_units.py::TestPortfolioContext::test_get_holding_float_format PASSED [ 79%]
+tests/test_units.py::TestPortfolioContext::test_get_holding_missing_symbol PASSED [ 79%]
+tests/test_units.py::TestPortfolioContext::test_get_holding_no_portfolio PASSED [ 80%]
+tests/test_units.py::TestPortfolioContext::test_format_holding_with_profit PASSED [ 80%]
+tests/test_units.py::TestPortfolioContext::test_format_holding_with_loss PASSED [ 81%]
+tests/test_units.py::TestPortfolioContext::test_format_holding_none PASSED [ 82%]
+tests/test_units.py::TestPortfolioContext::test_format_holding_large_profit_warning PASSED [ 82%]
+tests/test_units.py::TestPortfolioContext::test_format_holding_large_loss_warning PASSED [ 83%]
+tests/test_units.py::TestPortfolioContext::test_portfolio_summary_format PASSED [ 83%]
+tests/test_units.py::TestPortfolioContext::test_portfolio_summary_empty PASSED [ 84%]
+tests/test_units.py::TestSymbolNormalization::test_sz_lower PASSED       [ 84%]
+tests/test_units.py::TestSymbolNormalization::test_sz_upper PASSED       [ 85%]
+tests/test_units.py::TestSymbolNormalization::test_sh_lower PASSED       [ 85%]
+tests/test_units.py::TestSymbolNormalization::test_sh_upper PASSED       [ 86%]
+tests/test_units.py::TestSymbolNormalization::test_bj_lower PASSED       [ 86%]
+tests/test_units.py::TestSymbolNormalization::test_no_prefix PASSED      [ 87%]
+tests/test_units.py::TestSymbolNormalization::test_whitespace PASSED     [ 87%]
+tests/test_units.py::TestSymbolNormalization::test_leading_zero_preserved PASSED [ 88%]
+tests/test_units.py::TestTechnicalIndicators::test_rsi_neutral_when_insufficient_data PASSED [ 88%]
+tests/test_units.py::TestTechnicalIndicators::test_rsi_100_all_up PASSED [ 89%]
+tests/test_units.py::TestTechnicalIndicators::test_rsi_0_all_down PASSED [ 89%]
+tests/test_units.py::TestTechnicalIndicators::test_rsi_range PASSED      [ 90%]
+tests/test_units.py::TestTechnicalIndicators::test_macd_positive_when_short_above_long PASSED [ 91%]
+tests/test_units.py::TestTechnicalIndicators::test_bollinger_width PASSED [ 91%]
+tests/test_units.py::TestTechnicalIndicators::test_bollinger_volatile PASSED [ 92%]
+tests/test_units.py::TestLLMClientMock::test_mock_json_prompt_returns_valid_json PASSED [ 92%]
+tests/test_units.py::TestLLMClientMock::test_mock_text_prompt_returns_non_json PASSED [ 93%]
+tests/test_units.py::TestLLMClientMock::test_mock_json_confidence_in_range PASSED [ 93%]
+tests/test_units.py::TestBacktestEngine::test_run_backtest_returns_all_metrics PASSED [ 94%]
+tests/test_units.py::TestBacktestEngine::test_run_backtest_nav_curve_starts_at_1 PASSED [ 94%]
+tests/test_units.py::TestBacktestEngine::test_run_backtest_too_short_raises PASSED [ 95%]
+tests/test_units.py::TestBacktestEngine::test_run_backtest_deterministic_with_same_seed PASSED [ 95%]
+tests/test_units.py::TestBacktestEngine::test_max_drawdown_non_positive PASSED [ 96%]
+tests/test_units.py::TestGraphService::test_cosine_similarity_identical PASSED [ 96%]
+tests/test_units.py::TestGraphService::test_cosine_similarity_orthogonal PASSED [ 97%]
+tests/test_units.py::TestGraphService::test_cosine_similarity_empty PASSED [ 97%]
+tests/test_units.py::TestGraphService::test_cosine_similarity_different_length PASSED [ 98%]
+tests/test_units.py::TestGraphService::test_make_embedding_deterministic PASSED [ 98%]
+tests/test_units.py::TestGraphService::test_make_embedding_different_for_different_input PASSED [ 99%]
+tests/test_units.py::TestGraphService::test_make_embedding_length_32 PASSED [100%]
+
+============================ 189 passed in 30.63s =============================
+
+
+Frontend output:
+========================================================================
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+[36mvite v5.4.21 [32mbuilding for development...[36m[39m
+transforming...
+(node:38904) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///D:/work/Quant_Trading/sdd_full/frontend/postcss.config.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to D:\work\Quant_Trading\sdd_full\frontend\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[32m✓[39m 753 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                                                                   [39m[1m[2m  0.47 kB[22m[1m[22m[2m │ gzip:   0.35 kB[22m
+[2mdist/[22m[35massets/ApprovalListPage-Rgt-CRY-.css                                         [39m[1m[2m  0.20 kB[22m[1m[22m[2m │ gzip:   0.14 kB[22m
+[2mdist/[22m[35massets/PortfolioPage-CtylOjnx.css                                            [39m[1m[2m  0.20 kB[22m[1m[22m[2m │ gzip:   0.13 kB[22m
+[2mdist/[22m[35massets/ConfirmDialog-D5jDYoLj.css                                            [39m[1m[2m  0.21 kB[22m[1m[22m[2m │ gzip:   0.14 kB[22m
+[2mdist/[22m[35massets/RulesPage-Dna61NwP.css                                                [39m[1m[2m  0.38 kB[22m[1m[22m[2m │ gzip:   0.18 kB[22m
+[2mdist/[22m[35massets/ApprovalDetailPage-BPOrGaNK.css                                       [39m[1m[2m  0.42 kB[22m[1m[22m[2m │ gzip:   0.20 kB[22m
+[2mdist/[22m[35massets/index-DTWE8sJO.css                                                    [39m[1m[2m 33.47 kB[22m[1m[22m[2m │ gzip:   7.74 kB[22m
+[2mdist/[22m[36massets/graph-B33NyHmh.js                                                     [39m[1m[2m  0.28 kB[22m[1m[22m[2m │ gzip:   0.18 kB[22m
+[2mdist/[22m[36massets/decisions-Bl5BH6sE.js                                                 [39m[1m[2m  0.29 kB[22m[1m[22m[2m │ gzip:   0.17 kB[22m
+[2mdist/[22m[36massets/formatters-CsX6MAfG.js                                                [39m[1m[2m  0.77 kB[22m[1m[22m[2m │ gzip:   0.44 kB[22m
+[2mdist/[22m[36massets/useApprovals-Dfyx9EXd.js                                              [39m[1m[2m  0.98 kB[22m[1m[22m[2m │ gzip:   0.49 kB[22m
+[2mdist/[22m[36massets/TagBadge.vue_vue_type_script_setup_true_lang-BghAWgR-.js              [39m[1m[2m  1.20 kB[22m[1m[22m[2m │ gzip:   0.49 kB[22m
+[2mdist/[22m[36massets/StatusCard.vue_vue_type_script_setup_true_lang-B2D-6CQD.js            [39m[1m[2m  1.34 kB[22m[1m[22m[2m │ gzip:   0.73 kB[22m
+[2mdist/[22m[36massets/ConfirmDialog-oSzaqjrH.js                                             [39m[1m[2m  1.68 kB[22m[1m[22m[2m │ gzip:   0.92 kB[22m
+[2mdist/[22m[36massets/CircuitBreakerStatus.vue_vue_type_script_setup_true_lang-BwWfZyj0.js  [39m[1m[2m  1.76 kB[22m[1m[22m[2m │ gzip:   1.02 kB[22m
+[2mdist/[22m[36massets/DataTable.vue_vue_type_script_setup_true_lang-C5wHl8Il.js             [39m[1m[2m  1.78 kB[22m[1m[22m[2m │ gzip:   0.89 kB[22m
+[2mdist/[22m[36massets/useMutation-BMZDOeNt.js                                               [39m[1m[2m  3.26 kB[22m[1m[22m[2m │ gzip:   1.35 kB[22m
+[2mdist/[22m[36massets/AgentSignalCard.vue_vue_type_script_setup_true_lang-D2Cv6rql.js       [39m[1m[2m  3.56 kB[22m[1m[22m[2m │ gzip:   1.60 kB[22m
+[2mdist/[22m[36massets/AnalyzePage-D69ER_dW.js                                               [39m[1m[2m  8.63 kB[22m[1m[22m[2m │ gzip:   3.78 kB[22m
+[2mdist/[22m[36massets/ApprovalListPage-CZh-bNLn.js                                          [39m[1m[2m  9.53 kB[22m[1m[22m[2m │ gzip:   3.98 kB[22m
+[2mdist/[22m[36massets/useQuery-CNVT0SxZ.js                                                  [39m[1m[2m  9.92 kB[22m[1m[22m[2m │ gzip:   3.60 kB[22m
+[2mdist/[22m[36massets/DecisionDetailPage-DTsnPdbc.js                                        [39m[1m[2m 10.53 kB[22m[1m[22m[2m │ gzip:   3.72 kB[22m
+[2mdist/[22m[36massets/PortfolioPage-D2yh-1GC.js                                             [39m[1m[2m 12.41 kB[22m[1m[22m[2m │ gzip:   4.25 kB[22m
+[2mdist/[22m[36massets/DashboardPage-Bm4q4A0K.js                                             [39m[1m[2m 13.90 kB[22m[1m[22m[2m │ gzip:   5.45 kB[22m
+[2mdist/[22m[36massets/ApprovalDetailPage-CSEc8c9T.js                                        [39m[1m[2m 21.26 kB[22m[1m[22m[2m │ gzip:   6.86 kB[22m
+[2mdist/[22m[36massets/RulesPage-D-tr8gp9.js                                                 [39m[1m[2m 21.28 kB[22m[1m[22m[2m │ gzip:   7.11 kB[22m
+[2mdist/[22m[36massets/GraphPage-BijtXorW.js                                                 [39m[1m[2m 26.12 kB[22m[1m[22m[2m │ gzip:  10.73 kB[22m
+[2mdist/[22m[36massets/backtest-CHqzAg0-.js                                                  [39m[1m[2m 45.12 kB[22m[1m[22m[2m │ gzip:  15.51 kB[22m
+[2mdist/[22m[36massets/BacktestPage-ChqhJUCh.js                                              [39m[1m[2m 56.21 kB[22m[1m[22m[2m │ gzip:  19.32 kB[22m
+[2mdist/[22m[36massets/index-BlUxqD--.js                                                     [39m[1m[2m196.30 kB[22m[1m[22m[2m │ gzip:  73.65 kB[22m
+[2mdist/[22m[36massets/cytoscape.esm-7W5nqMhC.js                                             [39m[1m[2m442.42 kB[22m[1m[22m[2m │ gzip: 141.90 kB[22m
+[2mdist/[22m[36massets/index.esm.min-DzjWCwlB.js                                             [39m[1m[2m497.94 kB[22m[1m[22m[2m │ gzip: 168.37 kB[22m
+[32m✓ built in 9.76s[39m

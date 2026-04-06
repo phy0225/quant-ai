@@ -18,6 +18,7 @@ class CNSentimentAnalyst(BaseAgent):
         snap      = await fetch_cn_snapshot(sym)
         rsi       = snap["rsi"]       if snap else 50.0
         vol_ratio = snap["volume_ratio"] if snap else 1.0
+        factor_hint, factor_snapshot = self._factor_hint(context, sym)
 
         sentiment_ctx, direction, confidence = await build_sentiment_context(sym, rsi, vol_ratio)
 
@@ -45,6 +46,8 @@ class CNSentimentAnalyst(BaseAgent):
 
         system = "你是A股市场情绪分析师。根据以下情绪指标和持仓情况，写2-3句中文摘要，必须引用具体数值，如有持仓需结合持仓盈亏分析情绪风险。直接返回文字。"
         user_parts = [sentiment_ctx]
+        if factor_hint:
+            user_parts.append(f"\n{factor_hint}")
         if holding:
             user_parts.append(f"\n{holding_ctx}")
         if holding_sentiment_note:
@@ -69,5 +72,5 @@ class CNSentimentAnalyst(BaseAgent):
             "reasoning_summary": summary, "signal_weight": self.weight,
             "data_sources": ds,
             "created_at": _now_iso(), "retry_count": 0, "_events": [],
-            "input_snapshot": {"rsi": rsi, "volume_ratio": vol_ratio, "holding": holding},
+            "input_snapshot": {"rsi": rsi, "volume_ratio": vol_ratio, "holding": holding, "factor_context": factor_snapshot},
         }

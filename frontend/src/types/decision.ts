@@ -1,14 +1,15 @@
 import type { RecommendationItem } from './approval'
 
+export type DecisionMode = 'targeted' | 'rebalance'
 export type AgentType = 'technical' | 'fundamental' | 'news' | 'sentiment' | 'risk' | 'executor'
 
 export const AGENT_LABELS: Record<AgentType, string> = {
-  technical: '技术分析师',
-  fundamental: '基本面分析师',
-  news: '新闻分析师',
-  sentiment: '情绪分析师',
-  risk: '风险管理员',
-  executor: '交易执行员',
+  technical: '技术分析',
+  fundamental: '基本面分析',
+  news: '新闻分析',
+  sentiment: '情绪分析',
+  risk: '风险控制',
+  executor: '执行汇总',
 }
 
 export interface AgentSignal {
@@ -34,17 +35,21 @@ export interface HallucinationEvent {
 }
 
 export interface DecisionTriggerRequest {
-  symbols: string[]
+  mode: DecisionMode
+  symbols?: string[]
+  candidate_symbols?: string[]
   current_portfolio?: Record<string, number>
 }
 
 export interface DecisionRun {
   id: string
+  mode: DecisionMode
   status: 'running' | 'completed' | 'failed'
   triggered_by: string
   started_at: string
   completed_at: string | null
   symbols: string[]
+  candidate_symbols?: string[]
   recommendations: RecommendationItem[]
   agent_signals?: AgentSignal[]
   hallucination_events?: HallucinationEvent[]
@@ -52,3 +57,15 @@ export interface DecisionRun {
   risk_level?: 'low' | 'medium' | 'high' | null
   error_message?: string | null
 }
+
+export interface RebalanceOrder {
+  symbol: string
+  symbol_name?: string | null
+  action: 'buy' | 'sell' | 'hold'
+  current_weight: number
+  target_weight: number
+  weight_delta: number
+  confidence_score?: number | null
+  reasoning?: string | null
+}
+

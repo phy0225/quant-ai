@@ -20,6 +20,7 @@ class CNNewsAnalyst(BaseAgent):
         n_news    = len(news)
         holding   = get_holding(context, sym)
         holding_ctx = format_holding_context(holding, sym)
+        factor_hint, factor_snapshot = self._factor_hint(context, sym)
 
         if n_news >= 3:   level, max_conf = "A", 0.75
         elif n_news >= 1: level, max_conf = "B", 0.55
@@ -59,6 +60,8 @@ class CNNewsAnalyst(BaseAgent):
 只返回JSON。"""
 
         user_parts = [news_ctx]
+        if factor_hint:
+            user_parts.append(f"\n{factor_hint}")
         if holding:
             user_parts.append(f"\n{holding_ctx}")
         if holding_news_note:
@@ -85,7 +88,7 @@ class CNNewsAnalyst(BaseAgent):
                     "signal_weight": self.weight, "data_sources": ds,
                     "created_at": _now_iso(), "retry_count": attempt, "_events": [],
                     "input_snapshot": {"data_level": level, "news_count": n_news,
-                        "headlines": [n["title"] for n in news[:5]], "holding": holding},
+                        "headlines": [n["title"] for n in news[:5]], "holding": holding, "factor_context": factor_snapshot},
                 }
             except Exception as e:
                 print(f"[News] attempt {attempt}: {e}")

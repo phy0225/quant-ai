@@ -227,3 +227,48 @@ pip install aiosqlite
 
 **Q: 回测一直是 pending 状态**
 回测使用 `asyncio.create_task` 后台执行，确保后端日志无报错。如需调试可直接调用 `services/backtest.run_backtest()`。
+
+---
+
+## Quant Platform v3 Addendum (2026-04-03)
+
+### MySQL Setup Notes
+
+- Core settings are in `backend/config.py` and loaded from `.env`:
+  - `DB_HOST`
+  - `DB_PORT` (default `3306`)
+  - `DB_USER`
+  - `DB_PASSWORD`
+  - `DB_NAME`
+- Generated DSN field: `settings.mysql_dsn` (format: `mysql+asyncmy://...`).
+- Local test/dev can still use `DATABASE_URL` sqlite for quick bootstrap, while production should point to MySQL.
+
+### Feature Platform Environment Variables
+
+- `FEATURE_PLATFORM_MODE` (`api` or db-adapter mode)
+- `FEATURE_PLATFORM_API_URL`
+- `FEATURE_PLATFORM_API_KEY`
+- `FEATURE_PLATFORM_DB_URL`
+- `TRADING_CALENDAR_CACHE_DAYS`
+
+### v3 Pages and API Summary
+
+- New/updated product pages:
+  - `/decisions`
+  - `/factors`
+  - `/strategy`
+  - `/analyze` (targeted/rebalance)
+  - `/backtest` (signal_based/factor_based)
+  - `/graph` (factor-aware node metadata)
+  - `/rules` (agent dynamic weights + settlement entry)
+
+- Key v3 APIs:
+  - `POST /api/v1/decisions/trigger`
+  - `GET /api/v1/decisions/{id}/orders`
+  - `PUT /api/v1/approvals/{id}/modify`
+  - `GET /api/v1/rules/agent-weights`
+  - `POST /api/v1/settlement/run`
+  - `GET /api/v1/factors/daily`
+  - `POST /api/v1/factors/discover`
+  - `POST /api/v1/strategy/experiment`
+  - `GET /api/v1/strategy/versions`

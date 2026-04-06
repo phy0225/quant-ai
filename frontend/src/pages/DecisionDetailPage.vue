@@ -1,203 +1,243 @@
-<script setup lang="ts">
-import { computed } from 'vue'
+﻿<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useQuery } from '@tanstack/vue-query'
-import TagBadge from '@/components/ui/TagBadge.vue'
-import AgentSignalCard from '@/components/domain/AgentSignalCard.vue'
-import DecisionTimeline from '@/components/domain/DecisionTimeline.vue'
+
 import { decisionsApi } from '@/api/decisions'
+import type { DecisionRun, RebalanceOrder } from '@/types/decision'
+import StatusCard from '@/components/ui/StatusCard.vue'
 import { formatDate } from '@/utils/formatters'
 
 const route = useRoute()
 const router = useRouter()
 
-const decisionId = computed(() => route.params.id as string)
+const decisionId = computed(() => String(route.params.id || ''))
+const loading = ref(false)
+const error = ref('')
+const run = ref<DecisionRun | null>(null)
+const orders = ref<RebalanceOrder[]>([])
+let pollTimer: ReturnType<typeof setTimeout> | null = null
 
-const { data: run, isLoading } = useQuery({
-  queryKey: computed(() => ['decision', decisionId.value]),
-  queryFn: () => decisionsApi.get(decisionId.value),
-  enabled: computed(() => !!decisionId.value),
-  refetchInterval: (query) => {
-    const status = query.state.data?.status
-    return status === 'running' ? 2000 : false
-  },
+const statusTone = computed(() => {
+  if (!run.value) return 'text-[var(--text-secondary)] bg-[var(--bg-elevated)]'
+  if (run.value.status === 'completed') return 'text-[var(--positive)] bg-[var(--positive)]/10'
+  if (run.value.status === 'failed') return 'text-[var(--negative)] bg-[var(--negative)]/10'
+  return 'text-[var(--warning)] bg-[var(--warning)]/10'
 })
-
-const statusLabels: Record<string, string> = {
-  running: '分析中',
-  completed: '已完成',
-  failed: '失败',
-}
-
-const directionLabel: Record<string, string> = { buy: '买入', sell: '卖出', hold: '持有' }
-const riskLabel: Record<string, string> = { low: '低风险', medium: '中风险', high: '高风险' }
 
 const elapsedMs = computed(() => {
   if (!run.value?.started_at || !run.value?.completed_at) return null
   return new Date(run.value.completed_at).getTime() - new Date(run.value.started_at).getTime()
 })
 
-const hallucinationTotal = computed(() => run.value?.hallucination_events?.length ?? 0)
-const retryTotal = computed(() => (run.value?.agent_signals ?? []).reduce((s, a) => s + a.retry_count, 0))
+const effectiveFactorCount = computed(() => run.value?.recommendations?.length ?? 0)
+
+const agentAccuracy = computed(() => {
+  const signals = (run.value?.agent_signals || []).filter((s) =>
+    ['technical', 'fundamental', 'news', 'sentiment'].includes(s.agent_type)
+  )
+  if (!signals.length) return '--'
+  const avg = signals.reduce((sum, row) => sum + (row.confidence || 0), 0) / signals.length
+  return `${(avg * 100).toFixed(1)}%`
+})
+
+const stockOrders = computed(() => (orders.value || []).filter((row) => /^\d{6}$/.test(row.symbol)))
+
+const statusLabelMap: Record<string, string> = {
+  running: '运行中',
+  completed: '已完成',
+  failed: '失败',
+}
+
+const modeLabelMap: Record<string, string> = {
+  targeted: '定向分析',
+  rebalance: '调仓分析',
+}
+
+async function loadDecision() {
+  if (!decisionId.value) return
+  run.value = await decisionsApi.get(decisionId.value)
+  if (run.value.mode === 'rebalance') {
+    try {
+      orders.value = await decisionsApi.getOrders(decisionId.value)
+    } catch {
+      orders.value = []
+    }
+  } else {
+    orders.value = []
+  }
+}
+
+async function refresh() {
+  loading.value = true
+  error.value = ''
+  try {
+    await loadDecision()
+  } catch (e: any) {
+    error.value = e?.response?.data?.detail || e?.message || '加载决策详情失败。'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function pollIfRunning() {
+  if (!run.value || run.value.status !== 'running') return
+  if (pollTimer) clearTimeout(pollTimer)
+  pollTimer = setTimeout(async () => {
+    await refresh()
+    await pollIfRunning()
+  }, 1800)
+}
+
+onMounted(async () => {
+  await refresh()
+  await pollIfRunning()
+})
+
+onBeforeUnmount(() => {
+  if (pollTimer) clearTimeout(pollTimer)
+})
 </script>
 
 <template>
-  <div class="p-6 max-w-[1440px] mx-auto">
-    <!-- Breadcrumb -->
-    <div class="flex items-center gap-2 mb-4 text-[12px]">
-      <button class="text-[var(--brand-primary)] hover:underline" @click="router.push('/analyze')">触发分析</button>
-      <span class="text-[var(--text-tertiary)]">/</span>
-      <span class="text-[var(--text-secondary)]">决策详情</span>
-    </div>
-
-    <!-- Loading -->
-    <div v-if="isLoading" class="space-y-4">
-      <div class="skeleton h-8 w-1/3 rounded" />
-      <div class="skeleton h-64 rounded-lg" />
-    </div>
-
-    <template v-else-if="run">
-      <!-- Header -->
-      <div class="flex items-center gap-3 mb-6 flex-wrap">
+  <div class="p-6 max-w-[1320px] mx-auto space-y-5">
+    <div class="flex items-center justify-between">
+      <div class="space-y-1">
+        <button class="text-sm text-[var(--brand-primary)] hover:underline" @click="router.push('/decisions')">
+          返回决策列表
+        </button>
         <h1 class="text-xl font-bold text-[var(--text-primary)]">决策详情</h1>
-        <TagBadge
-          :variant="run.status === 'completed' ? 'approved' : run.status === 'failed' ? 'rejected' : 'pending'"
-          :label="statusLabels[run.status] ?? run.status"
-        />
-        <span v-if="run.final_direction" class="text-sm font-bold"
-          :class="run.final_direction === 'buy' ? 'text-[var(--positive)]'
-            : run.final_direction === 'sell' ? 'text-[var(--negative)]'
-            : 'text-[var(--text-secondary)]'"
-        >
-          {{ directionLabel[run.final_direction] }}
-        </span>
-        <span v-if="run.risk_level" class="text-[12px] text-[var(--text-tertiary)]">
-          · {{ riskLabel[run.risk_level] ?? run.risk_level }}
-        </span>
       </div>
-
-      <div class="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6">
-        <!-- Left: Timeline + Signal cards -->
-        <div class="space-y-6">
-          <!-- Timeline -->
-          <div class="card p-5">
-            <h3 class="text-sm font-semibold text-[var(--text-primary)] mb-4">决策链路时间轴</h3>
-            <DecisionTimeline
-              v-if="run.agent_signals?.length"
-              :agent-signals="run.agent_signals"
-              :hallucination-events="run.hallucination_events"
-              :started-at="run.started_at"
-              :completed-at="run.completed_at"
-            />
-            <p v-else class="text-[12px] text-[var(--text-tertiary)]">
-              {{ run.status === 'running' ? '分析进行中，等待 Agent 信号...' : '暂无 Agent 信号数据' }}
-            </p>
-          </div>
-
-          <!-- Signal cards grid -->
-          <div v-if="run.agent_signals?.length">
-            <h3 class="text-sm font-semibold text-[var(--text-primary)] mb-3">各 Agent 信号详情</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <AgentSignalCard
-                v-for="signal in run.agent_signals"
-                :key="signal.agent_type"
-                :signal="signal"
-              />
-            </div>
-          </div>
-        </div>
-
-        <!-- Right: Summary -->
-        <div class="space-y-4">
-          <!-- Run info -->
-          <div class="card p-4 space-y-2.5 text-[13px]">
-            <h4 class="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-3">运行信息</h4>
-            <div>
-              <p class="text-[11px] text-[var(--text-tertiary)] mb-0.5">运行 ID（可用于溯源）</p>
-              <p class="font-mono text-[11px] text-[var(--text-primary)] break-all select-all">{{ run.id }}</p>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-[var(--text-secondary)]">分析标的</span>
-              <span class="font-medium text-[var(--text-primary)]">{{ (run.symbols ?? []).join(', ') || '—' }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-[var(--text-secondary)]">触发来源</span>
-              <span class="text-[var(--text-primary)]">{{ run.triggered_by }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-[var(--text-secondary)]">启动时间</span>
-              <span class="text-[var(--text-tertiary)] text-[12px]">{{ formatDate(run.started_at) }}</span>
-            </div>
-            <div v-if="run.completed_at" class="flex justify-between">
-              <span class="text-[var(--text-secondary)]">完成时间</span>
-              <span class="text-[var(--text-tertiary)] text-[12px]">{{ formatDate(run.completed_at) }}</span>
-            </div>
-            <div v-if="elapsedMs !== null" class="flex justify-between">
-              <span class="text-[var(--text-secondary)]">耗时</span>
-              <span class="tabular-nums text-[var(--text-primary)]">{{ (elapsedMs / 1000).toFixed(1) }}s</span>
-            </div>
-          </div>
-
-          <!-- Quality stats -->
-          <div class="card p-4">
-            <h4 class="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-3">质量指标</h4>
-            <div class="grid grid-cols-2 gap-3 text-center">
-              <div>
-                <p class="text-lg font-bold text-[var(--text-primary)] tabular-nums">
-                  {{ run.agent_signals?.length ?? 0 }}
-                </p>
-                <p class="text-[11px] text-[var(--text-tertiary)]">Agent 信号</p>
-              </div>
-              <div>
-                <p
-                  class="text-lg font-bold tabular-nums"
-                  :class="hallucinationTotal > 0 ? 'text-[var(--warning)]' : 'text-[var(--positive)]'"
-                >
-                  {{ hallucinationTotal }}
-                </p>
-                <p class="text-[11px] text-[var(--text-tertiary)]">幻觉检测</p>
-              </div>
-              <div>
-                <p
-                  class="text-lg font-bold tabular-nums"
-                  :class="retryTotal > 0 ? 'text-[var(--warning)]' : 'text-[var(--positive)]'"
-                >
-                  {{ retryTotal }}
-                </p>
-                <p class="text-[11px] text-[var(--text-tertiary)]">重试次数</p>
-              </div>
-              <div>
-                <p class="text-lg font-bold text-[var(--text-primary)] tabular-nums">
-                  {{ run.recommendations?.length ?? 0 }}
-                </p>
-                <p class="text-[11px] text-[var(--text-tertiary)]">调仓建议</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Related approval -->
-          <div class="card p-4">
-            <h4 class="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-3">关联审批</h4>
-            <button
-              class="w-full text-[12px] text-[var(--brand-primary)] hover:underline text-left"
-              @click="router.push('/approvals')"
-            >
-              前往审批列表查看关联审批 →
-            </button>
-          </div>
-
-          <!-- Error -->
-          <div v-if="run.status === 'failed'" class="card p-4 border border-[var(--negative)]/30">
-            <p class="text-[var(--negative)] text-[12px] font-semibold mb-1">失败原因</p>
-            <p class="text-[12px] text-[var(--text-secondary)]">{{ run.error_message ?? '未知错误' }}</p>
-          </div>
-        </div>
-      </div>
-    </template>
-
-    <!-- Not found -->
-    <div v-else class="text-center py-20">
-      <p class="text-[var(--text-tertiary)]">决策记录不存在</p>
+      <button class="px-3 py-1.5 rounded bg-[var(--brand-primary)] text-white text-sm" @click="refresh">刷新</button>
     </div>
+
+    <div v-if="loading && !run" class="card p-4 text-sm text-[var(--text-tertiary)]">正在加载决策详情...</div>
+
+    <div v-else-if="run" class="space-y-5">
+      <div class="card p-4 space-y-3">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-xs text-[var(--text-secondary)]">任务编号</span>
+          <span class="font-mono text-xs break-all">{{ run.id }}</span>
+          <span class="px-2 py-1 rounded text-xs font-medium" :class="statusTone">{{ statusLabelMap[run.status] || run.status }}</span>
+          <span class="text-xs text-[var(--text-secondary)]">模式：{{ modeLabelMap[run.mode] || run.mode }}</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+          <div>标的代码：{{ run.symbols?.join(', ') || '--' }}</div>
+          <div>触发人：{{ run.triggered_by }}</div>
+          <div>开始时间：{{ formatDate(run.started_at) }}</div>
+          <div>完成时间：{{ run.completed_at ? formatDate(run.completed_at) : '--' }}</div>
+          <div>最终方向：{{ run.final_direction || '--' }}</div>
+          <div>风险等级：{{ run.risk_level || '--' }}</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatusCard title="有效因子数" :value="effectiveFactorCount" />
+        <StatusCard title="Agent 平均置信度" :value="agentAccuracy" />
+        <StatusCard title="Agent 信号数" :value="run.agent_signals?.length || 0" />
+        <StatusCard
+          title="耗时"
+          :value="elapsedMs === null ? '--' : `${(elapsedMs / 1000).toFixed(1)}s`"
+        />
+      </div>
+
+      <div v-if="run.mode === 'rebalance'" class="card p-4">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="font-semibold">调仓订单（仅股票）</h2>
+          <span class="text-xs text-[var(--text-tertiary)]">{{ stockOrders.length }} 条记录</span>
+        </div>
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left border-b border-[var(--border-subtle)]">
+              <th class="py-2">标的</th>
+              <th class="py-2">动作</th>
+              <th class="py-2">当前权重</th>
+              <th class="py-2">目标权重</th>
+              <th class="py-2">变化幅度</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in stockOrders" :key="row.symbol" class="border-b border-[var(--border-subtle)]">
+              <td class="py-2">{{ row.symbol }}</td>
+              <td class="py-2">{{ row.action === 'buy' ? '买入' : row.action === 'sell' ? '卖出' : '持有' }}</td>
+              <td class="py-2">{{ (row.current_weight * 100).toFixed(1) }}%</td>
+              <td class="py-2">{{ (row.target_weight * 100).toFixed(1) }}%</td>
+              <td class="py-2">{{ (row.weight_delta * 100).toFixed(1) }}%</td>
+            </tr>
+            <tr v-if="!stockOrders.length">
+              <td class="py-3 text-[var(--text-tertiary)]" colspan="5">暂无调仓订单。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card p-4">
+        <h2 class="font-semibold mb-2">策略建议</h2>
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left border-b border-[var(--border-subtle)]">
+              <th class="py-2">标的</th>
+              <th class="py-2">当前权重</th>
+              <th class="py-2">建议权重</th>
+              <th class="py-2">变化幅度</th>
+              <th class="py-2">置信度</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(row, idx) in run.recommendations || []"
+              :key="`${row.symbol}-${idx}`"
+              class="border-b border-[var(--border-subtle)]"
+            >
+              <td class="py-2">{{ row.symbol }}</td>
+              <td class="py-2">{{ ((row.current_weight || 0) * 100).toFixed(1) }}%</td>
+              <td class="py-2">{{ ((row.recommended_weight || 0) * 100).toFixed(1) }}%</td>
+              <td class="py-2">{{ ((row.weight_delta || 0) * 100).toFixed(1) }}%</td>
+              <td class="py-2">{{ (((row.confidence_score || 0) as number) * 100).toFixed(1) }}%</td>
+            </tr>
+            <tr v-if="!(run.recommendations || []).length">
+              <td class="py-3 text-[var(--text-tertiary)]" colspan="5">暂无策略建议。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card p-4">
+        <h2 class="font-semibold mb-2">Agent 信号</h2>
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left border-b border-[var(--border-subtle)]">
+              <th class="py-2">智能体</th>
+              <th class="py-2">方向</th>
+              <th class="py-2">置信度</th>
+              <th class="py-2">重试次数</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="signal in run.agent_signals || []"
+              :key="signal.agent_type"
+              class="border-b border-[var(--border-subtle)]"
+            >
+              <td class="py-2">{{ signal.agent_type }}</td>
+              <td class="py-2">{{ signal.direction || '--' }}</td>
+              <td class="py-2">{{ ((signal.confidence || 0) * 100).toFixed(1) }}%</td>
+              <td class="py-2">{{ signal.retry_count }}</td>
+            </tr>
+            <tr v-if="!(run.agent_signals || []).length">
+              <td class="py-3 text-[var(--text-tertiary)]" colspan="4">暂无 Agent 信号。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div v-if="run.status === 'failed'" class="card p-4 border border-[var(--negative)]/30">
+        <p class="text-sm text-[var(--negative)]">失败原因</p>
+        <p class="text-sm text-[var(--text-secondary)]">{{ run.error_message || '未知错误。' }}</p>
+      </div>
+    </div>
+
+    <div v-else-if="error" class="card p-4 text-sm text-[var(--negative)]">{{ error }}</div>
+
+    <div v-else class="card p-4 text-sm text-[var(--text-tertiary)]">未找到对应的决策记录。</div>
   </div>
 </template>

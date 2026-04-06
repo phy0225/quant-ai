@@ -5,16 +5,49 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, text
 from database import get_db, AsyncSessionLocal
-from models import DecisionRun, ApprovalRecord, RiskConfig
-from schemas import DecisionTriggerRequest
+from models import ApprovalRecord, DecisionRun, RiskConfig
 from agents.pipeline import run_decision_pipeline
 from services.graph import get_similar_cases
 from websocket_manager import manager
 
 router = APIRouter(prefix="/api/v1/decisions", tags=["decisions"])
+
+
+class DecisionTriggerPayload(BaseModel):
+    mode: str = "targeted"
+    symbols: list[str] = Field(default_factory=list)
+    candidate_symbols: list[str] = Field(default_factory=list)
+    current_portfolio: dict[str, float] | None = None
+
+    @model_validator(mode="after")
+    def validate_mode_payload(self):
+        self.mode = (self.mode or "targeted").strip().lower()
+        self.symbols = [str(symbol).strip().upper() for symbol in self.symbols if str(symbol).strip()]
+        self.candidate_symbols = [
+            str(symbol).strip().upper() for symbol in self.candidate_symbols if str(symbol).strip()
+        ]
+        if self.mode not in {"targeted", "rebalance"}:
+            raise ValueError("mode must be targeted or rebalance")
+        if self.mode == "targeted" and not self.symbols:
+            raise ValueError("targeted mode requires at least one symbol")
+        if self.mode == "rebalance" and not (self.symbols or self.candidate_symbols or self.current_portfolio):
+            raise ValueError("rebalance mode requires symbols, candidate_symbols, or current_portfolio")
+        return self
+
+    def resolved_symbols(self) -> list[str]:
+        merged: list[str] = []
+        seen: set[str] = set()
+        portfolio_symbols = list((self.current_portfolio or {}).keys())
+        for symbol in [*self.symbols, *self.candidate_symbols, *portfolio_symbols]:
+            normalized = str(symbol).strip().upper()
+            if normalized and normalized not in seen:
+                seen.add(normalized)
+                merged.append(normalized)
+        return merged
 
 
 def _fmt(dt) -> str | None:
@@ -24,11 +57,13 @@ def _fmt(dt) -> str | None:
 def _serialize_run(run: DecisionRun) -> dict:
     return {
         "id": run.id,
+        "mode": getattr(run, "mode", "targeted"),
         "status": run.status,
         "triggered_by": run.triggered_by,
         "started_at": _fmt(run.started_at),
         "completed_at": _fmt(run.completed_at),
         "symbols": run.symbols or [],
+        "candidate_symbols": getattr(run, "candidate_symbols", []) or [],
         "recommendations": run.recommendations or [],
         "agent_signals": run.agent_signals or [],
         "hallucination_events": run.hallucination_events or [],
@@ -117,7 +152,7 @@ async def _background_pipeline(
 
 @router.post("/trigger")
 async def trigger_decision(
-    payload: DecisionTriggerRequest,
+    payload: DecisionTriggerPayload,
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(select(RiskConfig))
@@ -125,8 +160,11 @@ async def trigger_decision(
     if cfg and cfg.emergency_stop_active:
         raise HTTPException(status_code=503, detail="System is in emergency stop mode.")
 
+    symbols = payload.resolved_symbols()
     run = DecisionRun(
-        symbols=payload.symbols,
+        mode=payload.mode,
+        symbols=symbols,
+        candidate_symbols=payload.candidate_symbols,
         current_portfolio=payload.current_portfolio,
         triggered_by="user",
         status="running",
@@ -145,7 +183,7 @@ async def trigger_decision(
             "daily_loss_warning_threshold": cfg.daily_loss_warning_threshold,
         }
 
-    # 从持仓表读取完整持仓数据（含成本价、浮盈等），注入 pipeline context
+    # 浠庢寔浠撹〃璇诲彇瀹屾暣鎸佷粨鏁版嵁锛堝惈鎴愭湰浠枫€佹诞鐩堢瓑锛夛紝娉ㄥ叆 pipeline context
     from models import PortfolioHolding
     portfolio_result = await db.execute(select(PortfolioHolding))
     all_holdings = portfolio_result.scalars().all()
@@ -161,7 +199,7 @@ async def trigger_decision(
                 "market_value":  h.market_value,
                 "symbol_name":   h.symbol_name,
             }
-    # 如果前端传了持仓，合并进来（前端数据优先 weight 字段）
+    # 濡傛灉鍓嶇浼犱簡鎸佷粨锛屽悎骞惰繘鏉ワ紙鍓嶇鏁版嵁浼樺厛 weight 瀛楁锛?
     if payload.current_portfolio:
         for sym, wt in payload.current_portfolio.items():
             if sym in full_portfolio:
@@ -169,7 +207,7 @@ async def trigger_decision(
             else:
                 full_portfolio[sym] = {"weight": wt}
 
-    print(f"[trigger] decision={run.id}  symbols={payload.symbols}  portfolio={len(full_portfolio)}只")
+    print(f"[trigger] decision={run.id}  symbols={payload.symbols}  portfolio={len(full_portfolio)}鍙?)
     asyncio.create_task(
         _background_pipeline(run.id, payload.symbols, full_portfolio, risk_cfg)
     )
@@ -260,6 +298,77 @@ async def get_decision_stats(
     }
 
 
+
+
+def _is_stock_symbol(symbol: str) -> bool:
+    normalized = str(symbol or "").strip().upper()
+    return normalized.isdigit() and len(normalized) == 6
+
+
+def _to_order_row(row: dict) -> dict:
+    symbol = str(row.get("symbol", "")).strip().upper()
+    current_weight = float(row.get("current_weight") or 0.0)
+    target_weight = row.get("recommended_weight")
+    if target_weight is None:
+        target_weight = row.get("target_weight")
+    target_weight = float(target_weight or 0.0)
+
+    raw_delta = row.get("weight_delta")
+    try:
+        weight_delta = float(raw_delta) if raw_delta is not None else round(target_weight - current_weight, 4)
+    except (TypeError, ValueError):
+        weight_delta = round(target_weight - current_weight, 4)
+
+    action = row.get("action")
+    if not action:
+        if weight_delta > 0:
+            action = "buy"
+        elif weight_delta < 0:
+            action = "sell"
+        else:
+            action = "hold"
+
+    return {
+        "symbol": symbol,
+        "symbol_name": row.get("symbol_name"),
+        "action": action,
+        "current_weight": current_weight,
+        "target_weight": target_weight,
+        "weight_delta": weight_delta,
+        "confidence_score": row.get("confidence_score"),
+        "reasoning": row.get("reasoning") or row.get("reasoning_summary"),
+    }
+
+
+@router.get("/{decision_id}/orders")
+async def get_decision_orders(decision_id: str, db: AsyncSession = Depends(get_db)):
+    run_result = await db.execute(select(DecisionRun).where(DecisionRun.id == decision_id))
+    run = run_result.scalars().first()
+    if not run:
+        raise HTTPException(status_code=404, detail="Decision not found.")
+
+    approval_result = await db.execute(
+        select(ApprovalRecord)
+        .where(ApprovalRecord.decision_run_id == decision_id)
+        .order_by(ApprovalRecord.created_at.desc())
+    )
+    latest_approval = approval_result.scalars().first()
+
+    source_rows = []
+    if latest_approval and latest_approval.recommendations:
+        source_rows = list(latest_approval.recommendations or [])
+    elif run.recommendations:
+        source_rows = list(run.recommendations or [])
+
+    orders: list[dict] = []
+    for row in source_rows:
+        if not isinstance(row, dict):
+            continue
+        symbol = str(row.get("symbol", "")).strip().upper()
+        if not _is_stock_symbol(symbol):
+            continue
+        orders.append(_to_order_row(row))
+    return orders
 @router.get("/{decision_id}")
 async def get_decision(decision_id: str, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(DecisionRun).where(DecisionRun.id == decision_id))

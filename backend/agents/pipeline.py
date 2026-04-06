@@ -3,8 +3,9 @@ Multi-agent pipeline — A股版
 执行员加权投票时，data_missing 事件的信号自动降权
 """
 from __future__ import annotations
-import asyncio, random, traceback
+import asyncio, traceback
 from datetime import datetime
+from agents.factor_context import build_factor_context
 from agents.cn_technical_agent   import CNTechnicalAnalyst
 from agents.cn_fundamental_agent import CNFundamentalAnalyst
 from agents.cn_news_agent        import CNNewsAnalyst
@@ -40,6 +41,8 @@ def _risk_check(signals, context, risk_cfg):
 def _make_recommendations(signals, context):
     symbols  = context.get("symbols", [])
     portfolio = context.get("current_portfolio") or {s: 0.0 for s in symbols}
+    factor_context = context.get("factor_context") or {}
+    scored_stocks = factor_context.get("scored_stocks") or {}
 
     scores   = {"buy": 0.0, "sell": 0.0, "hold": 0.0}
     total_w  = 0.0
@@ -83,10 +86,13 @@ def _make_recommendations(signals, context):
     for sym in symbols:
         h = portfolio.get(sym, 0.0)
         cur = h.get("weight", 0.0) if isinstance(h, dict) else float(h or 0.0)
+        factor_score = float(scored_stocks.get(sym, 0.5))
+        factor_bias = min(1.0, abs(factor_score - 0.5) * 2)
+        delta = round(0.08 * avg_conf * factor_bias, 4)
         if final_dir == "buy":
-            rec = min(cur + random.uniform(0.03, 0.08), 0.20)
+            rec = min(cur + delta, 0.20)
         elif final_dir == "sell":
-            rec = max(cur - random.uniform(0.03, 0.08), 0.0)
+            rec = max(cur - delta, 0.0)
         else:
             rec = cur
         recs.append({
@@ -95,6 +101,7 @@ def _make_recommendations(signals, context):
             "recommended_weight": round(rec, 4),
             "weight_delta":       round(rec - cur, 4),
             "confidence_score":   round(avg_conf, 3),
+            "factor_score":       round(factor_score, 4),
             "similar_cases":      [],
             "missing_agents":     missing_agents,
             "low_data_warning":   low_data_warning,
@@ -107,7 +114,12 @@ async def run_decision_pipeline(
     risk_cfg=None, ws_broadcaster=None,
 ):
     print(f"[pipeline] START decision={decision_id} symbols={symbols}")
-    context  = {"symbols": symbols, "current_portfolio": current_portfolio or {}}
+    factor_context = await build_factor_context(symbols=symbols, candidate_symbols=symbols)
+    context  = {
+        "symbols": symbols,
+        "current_portfolio": current_portfolio or {},
+        "factor_context": factor_context,
+    }
     risk_cfg = risk_cfg or {}
 
     agents = [CNTechnicalAnalyst(), CNFundamentalAnalyst(), CNNewsAnalyst(), CNSentimentAnalyst()]
@@ -186,7 +198,7 @@ async def run_decision_pipeline(
     agent_signals.append({
         "agent_type":        "executor",
         "direction":         final_direction,
-        "confidence":        round(random.uniform(0.65, 0.88), 2),
+        "confidence":        round(min(0.88, max(0.65, 0.65 + len(directions) * 0.03)), 2),
         "reasoning_summary": exec_reasoning,
         "signal_weight":     0.05,
         "created_at":        _now_iso(),

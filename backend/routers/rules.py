@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from database import get_db
-from models import AutoApprovalRule
+from models import AgentWeightConfig, AutoApprovalRule
 from schemas import AutoApprovalRuleCreate
 
 router = APIRouter(prefix="/api/v1/rules", tags=["rules"])
@@ -85,3 +85,31 @@ async def toggle_rule(rule_id: str, db: AsyncSession = Depends(get_db)):
     rule.updated_at = datetime.utcnow()
     await db.commit()
     return _serialize(rule)
+
+
+@router.get("/agent-weights")
+async def get_agent_weights(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(AgentWeightConfig).order_by(AgentWeightConfig.weight.desc()))
+    rows = result.scalars().all()
+    if not rows:
+        return {
+            "items": [
+                {"agent_type": "technical", "weight": 0.25, "accuracy_30d": None, "accuracy_60d": None, "is_locked": False},
+                {"agent_type": "fundamental", "weight": 0.25, "accuracy_30d": None, "accuracy_60d": None, "is_locked": False},
+                {"agent_type": "news", "weight": 0.25, "accuracy_30d": None, "accuracy_60d": None, "is_locked": False},
+                {"agent_type": "sentiment", "weight": 0.25, "accuracy_30d": None, "accuracy_60d": None, "is_locked": False},
+            ]
+        }
+    return {
+        "items": [
+            {
+                "agent_type": row.agent_type,
+                "weight": row.weight,
+                "accuracy_30d": row.accuracy_30d,
+                "accuracy_60d": row.accuracy_60d,
+                "is_locked": row.is_locked,
+                "last_updated": _fmt(row.last_updated),
+            }
+            for row in rows
+        ]
+    }

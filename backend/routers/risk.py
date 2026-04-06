@@ -1,5 +1,6 @@
 """Risk management endpoints."""
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from database import get_db
 from schemas import (
@@ -7,6 +8,7 @@ from schemas import (
     EmergencyStopRequest, EmergencyDeactivateRequest,
 )
 import services.risk as risk_svc
+from models import AgentWeightConfig
 from websocket_manager import manager
 
 router = APIRouter(prefix="/api/v1/risk", tags=["risk"])
@@ -49,3 +51,20 @@ async def deactivate_emergency(payload: EmergencyDeactivateRequest, db: AsyncSes
         return result
     except ValueError as e:
         raise HTTPException(status_code=403, detail=str(e))
+
+
+@router.get("/agent-weights")
+async def get_agent_weights(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(AgentWeightConfig).order_by(AgentWeightConfig.weight.desc()))
+    return {
+        "items": [
+            {
+                "agent_type": row.agent_type,
+                "weight": row.weight,
+                "accuracy_30d": row.accuracy_30d,
+                "accuracy_60d": row.accuracy_60d,
+                "is_locked": row.is_locked,
+            }
+            for row in result.scalars().all()
+        ]
+    }
